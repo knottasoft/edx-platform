@@ -19,6 +19,7 @@ from lms.djangoapps.certificates.tests.factories import (
     GeneratedCertificateFactory,
     LinkedInAddToProfileConfigurationFactory
 )
+from openedx.core.djangoapps.content.course_overviews.data import CertificatesDisplayBehaviors
 from xmodule.modulestore import ModuleStoreEnum
 from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
@@ -40,7 +41,9 @@ class CertificateDisplayTestBase(SharedModuleStoreTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.course = CourseFactory()
-        cls.course.certificates_display_behavior = "early_with_info"
+        cls.course.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO
+        # "early_with_info"
+        # TODO: CHECK_HERE
 
         with cls.store.branch_setting(ModuleStoreEnum.Branch.draft_preferred, cls.course.id):
             cls.store.update_item(cls.course, cls.USERNAME)
@@ -116,7 +119,8 @@ class CertificateDashboardMessageDisplayTest(CertificateDisplayTestBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.course.certificates_display_behavior = "end"
+        # TODO: CHECK_HERE
+        cls.course.certificates_display_behavior = CertificatesDisplayBehaviors.END
         cls.course.save()
         cls.store.update_item(cls.course, cls.USERNAME)
 

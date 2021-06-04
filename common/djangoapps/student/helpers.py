@@ -46,6 +46,7 @@ from lms.djangoapps.grades.api import CourseGradeFactory
 from lms.djangoapps.verify_student.models import VerificationDeadline
 from lms.djangoapps.verify_student.services import IDVerificationService
 from lms.djangoapps.verify_student.utils import is_verification_expiring_soon, verification_for_datetime
+from openedx.core.djangoapps.content.course_overviews.data import CertificatesDisplayBehaviors
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 from openedx.core.djangoapps.theming.helpers import get_themes
 from openedx.core.djangoapps.user_authn.utils import is_safe_login_or_logout_redirect
@@ -517,8 +518,9 @@ def _cert_info(user, course_overview, cert_status):
     ):
         status = certificate_earned_but_not_available_status
 
+    # TODO: CHECK_HERE
     if (
-        course_overview.certificates_display_behavior == 'early_no_info' and
+        course_overview.certificates_display_behavior == CertificatesDisplayBehaviors.EARLY_NO_INFO and
         is_hidden_status
     ):
         return default_info

@@ -36,6 +36,7 @@ from xmodule.error_module import ErrorBlock
 from xmodule.modulestore.django import modulestore
 from xmodule.tabs import CourseTab
 
+from .data import CertificatesDisplayBehaviors
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ class CourseOverview(TimeStampedModel):
         app_label = 'course_overviews'
 
     # IMPORTANT: Bump this whenever you modify this model and/or add a migration.
-    VERSION = 12  # this one goes to thirteen
+    VERSION = 13
 
     # Cache entry versioning.
     version = IntegerField()
@@ -96,7 +97,11 @@ class CourseOverview(TimeStampedModel):
     end_of_course_survey_url = TextField(null=True)
 
     # Certification data
-    certificates_display_behavior = TextField(null=True)
+    certificates_display_behavior = TextField(
+        null=True,
+        choices=[(choice.value, choice.name) for choice in CertificatesDisplayBehaviors],
+        default=CertificatesDisplayBehaviors.EARLY_NO_INFO
+    )
     certificates_show_before_end = BooleanField(default=False)
     cert_html_view_enabled = BooleanField(default=False)
     has_any_active_web_certificate = BooleanField(default=False)

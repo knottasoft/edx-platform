@@ -162,6 +162,7 @@ class CourseMetadataUtilsTestCase(TestCase):
                 TestScenario((DEFAULT_START_DATE, advertised_start_parsable), False),
                 TestScenario((DEFAULT_START_DATE, None), True),
             ]),
+            # TODO: CHECK_HERE
             FunctionTest(may_certify_for_course, [
                 TestScenario(('early_with_info', True, True, test_datetime, False), True),
                 TestScenario(('early_no_info', False, False, test_datetime, False), True),

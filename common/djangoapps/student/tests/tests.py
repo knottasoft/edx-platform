@@ -43,6 +43,7 @@ from lms.djangoapps.certificates.tests.factories import GeneratedCertificateFact
 from lms.djangoapps.verify_student.tests import TestVerificationBase
 from openedx.core.djangoapps.catalog.tests.factories import CourseFactory as CatalogCourseFactory
 from openedx.core.djangoapps.catalog.tests.factories import CourseRunFactory, ProgramFactory, generate_course_run_key
+from openedx.core.djangoapps.content.course_overviews.data import CertificatesDisplayBehaviors
 from openedx.core.djangoapps.content.course_overviews.tests.factories import CourseOverviewFactory
 from openedx.core.djangoapps.programs.tests.mixins import ProgramsApiConfigMixin
 from openedx.core.djangoapps.site_configuration.tests.mixins import SiteMixin
@@ -73,9 +74,10 @@ class CourseEndingTest(ModuleStoreTestCase):
     def test_cert_info(self):
         user = UserFactory.create()
         survey_url = "http://a_survey.com"
+        # TODO: CHECK_HERE
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
-            certificates_display_behavior='end',
+            certificates_display_behavior=CertificatesDisplayBehaviors.END.value,
         )
         cert = GeneratedCertificateFactory.create(
             user=user,
@@ -138,7 +140,8 @@ class CourseEndingTest(ModuleStoreTestCase):
                                                           'can_unenroll': True}
 
         # test when the display is unavailable or notpassing, we get the correct results out
-        course2.certificates_display_behavior = 'early_no_info'
+        # TODO: CHECK_HERE
+        course2.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO.value
         cert_status = {'status': 'unavailable', 'mode': 'honor', 'uuid': None}
         assert _cert_info(user, course2, cert_status) == {'status': 'processing', 'show_survey_button': False,
                                                           'can_unenroll': True}
@@ -171,9 +174,10 @@ class CourseEndingTest(ModuleStoreTestCase):
         expected_grade = max(filter(lambda x: x is not None, [persisted_grade, cert_grade]))
         user = UserFactory.create()
         survey_url = "http://a_survey.com"
+        # TODO: CHECK_HERE
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
-            certificates_display_behavior='end',
+            certificates_display_behavior=CertificatesDisplayBehaviors.END.value,
         )
 
         if cert_grade is not None:
@@ -196,9 +200,10 @@ class CourseEndingTest(ModuleStoreTestCase):
         """
         user = UserFactory.create()
         survey_url = "http://a_survey.com"
+        # TODO: CHECK_HERE
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
-            certificates_display_behavior='end',
+            certificates_display_behavior=CertificatesDisplayBehaviors.END.value,
         )
         cert_status = {'status': 'generating', 'mode': 'honor', 'uuid': None}
 

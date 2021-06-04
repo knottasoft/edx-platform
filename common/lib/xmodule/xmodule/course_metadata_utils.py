@@ -156,7 +156,7 @@ def may_certify_for_course(
         self_paced (bool): Whether the course is self-paced.
     """
     show_early = (
-        certificates_display_behavior in ('early_with_info', 'early_no_info')
+        certificates_display_behavior in ('early_with_info', 'early_no_info') # TODO: CHECK_HERE
         or certificates_show_before_end
     )
     past_available_date = (

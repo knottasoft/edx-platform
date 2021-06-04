@@ -44,6 +44,7 @@ define(['backbone', 'underscore', 'gettext', 'js/models/validation_helpers', 'js
                 // A bit funny in that the video key validation is asynchronous; so, it won't stop the validation.
                 var errors = {};
                 const CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS = ["end", "end_with_date", "early_no_info"];
+
                 newattrs = DateUtils.convertDateStringsToObjects(
                     newattrs,
                     ['start_date', 'end_date', 'certificate_available_date', 'enrollment_start', 'enrollment_end']

@@ -552,6 +552,7 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
         deprecated=True
     )
 
+    # TODO: CHECK_HERE
     certificates_display_behavior = String(
         display_name=_("Certificates Display Behavior"),
         help=_(

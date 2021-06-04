@@ -595,7 +595,7 @@ def certificates_viewable_for_course(course):
     if course.self_paced:
         return True
     if (
-        course.certificates_display_behavior in ('early_with_info', 'early_no_info')
+        course.certificates_display_behavior in ('early_with_info', 'early_no_info') # TODO: CHECK_HERE
         or course.certificates_show_before_end
     ):
         return True

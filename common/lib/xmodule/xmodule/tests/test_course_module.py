@@ -118,6 +118,7 @@ class HasEndedMayCertifyTestCase(unittest.TestCase):
         #""".format(org=ORG, course=COURSE)
         past_end = (datetime.now() - timedelta(days=12)).strftime("%Y-%m-%dT%H:%M:00")
         future_end = (datetime.now() + timedelta(days=12)).strftime("%Y-%m-%dT%H:%M:00")
+        # TODO: CHECK_HERE
         self.past_show_certs = get_dummy_course("2012-01-01T12:00", end=past_end, certs='early_with_info')
         self.past_show_certs_no_info = get_dummy_course("2012-01-01T12:00", end=past_end, certs='early_no_info')
         self.past_noshow_certs = get_dummy_course("2012-01-01T12:00", end=past_end, certs='end')
