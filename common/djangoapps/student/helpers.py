@@ -46,10 +46,10 @@ from lms.djangoapps.grades.api import CourseGradeFactory
 from lms.djangoapps.verify_student.models import VerificationDeadline
 from lms.djangoapps.verify_student.services import IDVerificationService
 from lms.djangoapps.verify_student.utils import is_verification_expiring_soon, verification_for_datetime
-from openedx.core.djangoapps.content.course_overviews.data import CertificatesDisplayBehaviors
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 from openedx.core.djangoapps.theming.helpers import get_themes
 from openedx.core.djangoapps.user_authn.utils import is_safe_login_or_logout_redirect
+from xmodule.course_module import CertificatesDisplayBehaviors
 
 # Enumeration of per-course verification statuses
 # we display on the student dashboard.

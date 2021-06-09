@@ -43,13 +43,14 @@ from lms.djangoapps.certificates.tests.factories import GeneratedCertificateFact
 from lms.djangoapps.verify_student.tests import TestVerificationBase
 from openedx.core.djangoapps.catalog.tests.factories import CourseFactory as CatalogCourseFactory
 from openedx.core.djangoapps.catalog.tests.factories import CourseRunFactory, ProgramFactory, generate_course_run_key
-from openedx.core.djangoapps.content.course_overviews.data import CertificatesDisplayBehaviors
 from openedx.core.djangoapps.content.course_overviews.tests.factories import CourseOverviewFactory
 from openedx.core.djangoapps.programs.tests.mixins import ProgramsApiConfigMixin
 from openedx.core.djangoapps.site_configuration.tests.mixins import SiteMixin
 from openedx.core.djangolib.testing.utils import CacheIsolationTestCase, skip_unless_lms
 from xmodule.modulestore.tests.django_utils import ModuleStoreEnum, ModuleStoreTestCase, SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, check_mongo_calls
+from xmodule.xmodule.course_module import CertificatesDisplayBehaviors
+
 
 log = logging.getLogger(__name__)
 

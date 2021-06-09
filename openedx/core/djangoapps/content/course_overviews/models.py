@@ -31,12 +31,10 @@ from openedx.core.djangoapps.models.course_details import CourseDetails
 from openedx.core.lib.cache_utils import request_cached, RequestCache
 from common.djangoapps.static_replace.models import AssetBaseUrlConfig
 from xmodule import block_metadata_utils, course_metadata_utils
-from xmodule.course_module import DEFAULT_START_DATE, CourseBlock
+from xmodule.course_module import DEFAULT_START_DATE, CertificatesDisplayBehaviors, CourseBlock
 from xmodule.error_module import ErrorBlock
 from xmodule.modulestore.django import modulestore
 from xmodule.tabs import CourseTab
-
-from .data import CertificatesDisplayBehaviors
 
 log = logging.getLogger(__name__)
 

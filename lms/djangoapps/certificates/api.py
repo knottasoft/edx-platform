@@ -48,6 +48,7 @@ from lms.djangoapps.certificates.utils import (
     has_html_certificates_enabled as _has_html_certificates_enabled
 )
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from xmodule.course_module import CertificatesDisplayBehaviors
 
 log = logging.getLogger("edx.certificate")
 User = get_user_model()
@@ -595,7 +596,10 @@ def certificates_viewable_for_course(course):
     if course.self_paced:
         return True
     if (
-        course.certificates_display_behavior in ('early_with_info', 'early_no_info') # TODO: CHECK_HERE
+        course.certificates_display_behavior in (
+            CertificatesDisplayBehaviors.EARLY_WITH_INFO,
+            CertificatesDisplayBehaviors.EARLY_NO_INFO
+        ) # TODO: CHECK_HERE
         or course.certificates_show_before_end
     ):
         return True
