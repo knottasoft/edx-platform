@@ -269,6 +269,7 @@ def certificate_downloadable_status(student, course_key):
     if (
         not certificates_viewable_for_course(course_overview) and
         CertificateStatuses.is_passing_status(current_status['status']) and
+        course_overview.certificates_display_behavior == CertificatesDisplayBehaviors.END and
         course_overview.certificate_available_date
     ):
         response_data['earned_but_not_available'] = True
@@ -596,20 +597,17 @@ def certificates_viewable_for_course(course):
     if course.self_paced:
         return True
     if (
-        course.certificates_display_behavior in (
-            CertificatesDisplayBehaviors.EARLY_WITH_INFO,
-            CertificatesDisplayBehaviors.EARLY_NO_INFO
-        ) # TODO: CHECK_HERE
+        course.certificates_display_behavior == CertificatesDisplayBehaviors.EARLY_NO_INFO
         or course.certificates_show_before_end
     ):
         return True
     if (
-        course.certificate_available_date
+        course.certificates_display_behavior == CertificatesDisplayBehaviors.END_WITH_DATE
         and course.certificate_available_date <= datetime.now(UTC)
     ):
         return True
     if (
-        course.certificate_available_date is None
+        course.certificates_display_behavior == CertificatesDisplayBehaviors.END
         and course.has_ended()
     ):
         return True

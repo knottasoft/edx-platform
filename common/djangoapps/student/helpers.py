@@ -512,13 +512,13 @@ def _cert_info(user, course_overview, cert_status):
     is_hidden_status = status in ('processing', 'generating', 'notpassing', 'auditing')
 
     if (
-        not certificates_viewable_for_course(course_overview) and
-        CertificateStatuses.is_passing_status(status) and
-        course_overview.certificate_available_date
+        not certificates_viewable_for_course(course_overview)
+        and CertificateStatuses.is_passing_status(status)
+        and course_overview.certificates_display_behavior == CertificatesDisplayBehaviors.END_WITH_DATE
+        and course_overview.certificate_available_date
     ):
         status = certificate_earned_but_not_available_status
 
-    # TODO: CHECK_HERE
     if (
         course_overview.certificates_display_behavior == CertificatesDisplayBehaviors.EARLY_NO_INFO and
         is_hidden_status

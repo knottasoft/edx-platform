@@ -554,7 +554,6 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
         deprecated=True
     )
 
-    # TODO: CHECK_HERE
     certificates_display_behavior = String(
         display_name=_("Certificates Display Behavior"),
         help=_(
@@ -1064,8 +1063,6 @@ class CourseBlock(
         except InvalidTabsException as err:
             raise type(err)(f'{str(err)} For course: {str(self.id)}')  # lint-amnesty, pylint: disable=line-too-long
 
-        self.set_default_certificate_available_date()
-
     def set_grading_policy(self, course_policy):
         """
         The JSON object can have the keys GRADER and GRADE_CUTOFFS. If either is
@@ -1090,10 +1087,6 @@ class CourseBlock(
         # Use setters so that side effecting to .definitions works
         self.raw_grader = grading_policy['GRADER']  # used for cms access
         self.grade_cutoffs = grading_policy['GRADE_CUTOFFS']
-
-    def set_default_certificate_available_date(self):
-        if (not self.certificate_available_date) and self.end:
-            self.certificate_available_date = self.end
 
     @classmethod
     def read_grading_policy(cls, paths, system):
