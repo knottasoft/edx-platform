@@ -48,7 +48,7 @@ from lms.djangoapps.certificates.utils import (
     has_html_certificates_enabled as _has_html_certificates_enabled
 )
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
-from xmodule.course_module import CertificatesDisplayBehaviors
+from xmodule.data import CertificatesDisplayBehaviors
 
 log = logging.getLogger("edx.certificate")
 User = get_user_model()

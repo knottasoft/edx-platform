@@ -23,6 +23,7 @@ from xmodule.course_metadata_utils import (
     may_certify_for_course,
     number_for_course_location
 )
+from xmodule.data import CertificatesDisplayBehaviors
 from xmodule.modulestore.tests.utils import (
     MixedModulestoreBuilder,
     MongoModulestoreBuilder,
@@ -164,16 +165,16 @@ class CourseMetadataUtilsTestCase(TestCase):
             ]),
             # TODO: CHECK_HERE
             FunctionTest(may_certify_for_course, [
-                TestScenario(('early_with_info', True, True, test_datetime, False), True),
-                TestScenario(('early_no_info', False, False, test_datetime, False), True),
-                TestScenario(('end', True, False, test_datetime, False), True),
-                TestScenario(('end', False, True, test_datetime, False), True),
-                TestScenario(('end', False, False, _NEXT_WEEK, False), False),
-                TestScenario(('end', False, False, _LAST_WEEK, False), True),
-                TestScenario(('end', False, False, None, False), False),
-                TestScenario(('early_with_info', False, False, None, False), True),
-                TestScenario(('end', False, False, _NEXT_WEEK, False), False),
-                TestScenario(('end', False, False, _NEXT_WEEK, True), True),
+                TestScenario((CertificatesDisplayBehaviors.EARLY_WITH_INFO, True, True, test_datetime, False), True),
+                TestScenario((CertificatesDisplayBehaviors.EARLY_NO_INFO, False, False, test_datetime, False), True),
+                TestScenario((CertificatesDisplayBehaviors.END, True, False, test_datetime, False), True),
+                TestScenario((CertificatesDisplayBehaviors.END, False, True, test_datetime, False), True),
+                TestScenario((CertificatesDisplayBehaviors.END, False, False, _NEXT_WEEK, False), False),
+                TestScenario((CertificatesDisplayBehaviors.END, False, False, _LAST_WEEK, False), True),
+                TestScenario((CertificatesDisplayBehaviors.END, False, False, None, False), False),
+                TestScenario((CertificatesDisplayBehaviors.EARLY_NO_INFO, False, False, None, False), True),
+                TestScenario((CertificatesDisplayBehaviors.END, False, False, _NEXT_WEEK, False), False),
+                TestScenario((CertificatesDisplayBehaviors.END, False, False, _NEXT_WEEK, True), True),
             ]),
         ]
 

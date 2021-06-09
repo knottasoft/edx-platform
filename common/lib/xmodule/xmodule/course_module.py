@@ -23,6 +23,7 @@ from openedx.core.lib.license import LicenseMixin
 from openedx.core.lib.teams_config import TeamsConfig  # lint-amnesty, pylint: disable=unused-import
 from xmodule import course_metadata_utils
 from xmodule.course_metadata_utils import DEFAULT_GRADING_POLICY, DEFAULT_START_DATE
+from xmodule.data import CertificatesDisplayBehaviors
 from xmodule.graders import grader_from_conf
 from xmodule.seq_module import SequenceBlock
 from xmodule.tabs import CourseTabList, InvalidTabsException
@@ -54,12 +55,6 @@ SPECIAL_EXAMS_ENABLED = getattr(settings, 'FEATURES', {}).get('ENABLE_SPECIAL_EX
 COURSE_VISIBILITY_PRIVATE = 'private'
 COURSE_VISIBILITY_PUBLIC_OUTLINE = 'public_outline'
 COURSE_VISIBILITY_PUBLIC = 'public'
-
-# TODO: CHECK_HERE
-class CertificatesDisplayBehaviors(str, Enum):
-    END = "end"
-    EARLY_NO_INFO = "early_no_info"
-    EARLY_WITH_INFO = "early_with_info"
 
 
 class StringOrDate(Date):  # lint-amnesty, pylint: disable=missing-class-docstring
@@ -571,7 +566,7 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
             "soon as certificates are generated, enter early_no_info."
         ),
         scope=Scope.settings,
-        default=CertificatesDisplayBehaviors.END.value,
+        default=CertificatesDisplayBehaviors.END,
     )
     course_image = String(
         display_name=_("Course About Page Image"),

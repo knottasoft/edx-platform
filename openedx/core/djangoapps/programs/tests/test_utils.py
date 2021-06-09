@@ -51,6 +51,7 @@ from openedx.core.djangoapps.site_configuration.tests.factories import SiteFacto
 from openedx.core.djangolib.testing.utils import skip_unless_lms
 from common.djangoapps.student.tests.factories import AnonymousUserFactory, CourseEnrollmentFactory, UserFactory
 from common.djangoapps.util.date_utils import strftime_localized
+from xmodule.data import CertificatesDisplayBehaviors
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.tests.django_utils import (
     ModuleStoreTestCase, SharedModuleStoreTestCase, TEST_DATA_SPLIT_MODULESTORE
@@ -499,7 +500,7 @@ class TestProgramProgressMeter(ModuleStoreTestCase):
             end=two_days_ago,
             self_paced=False,
             certificate_available_date=tomorrow,
-            certificates_display_behavior='end'
+            certificates_display_behavior=CertificatesDisplayBehaviors.END
         )
         # TODO: CHECK_HERE
         third_course_run_key = str(course3.id)

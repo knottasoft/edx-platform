@@ -49,7 +49,7 @@ from openedx.core.djangoapps.site_configuration.tests.mixins import SiteMixin
 from openedx.core.djangolib.testing.utils import CacheIsolationTestCase, skip_unless_lms
 from xmodule.modulestore.tests.django_utils import ModuleStoreEnum, ModuleStoreTestCase, SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, check_mongo_calls
-from xmodule.xmodule.course_module import CertificatesDisplayBehaviors
+from xmodule.data import CertificatesDisplayBehaviors
 
 
 log = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ class CourseEndingTest(ModuleStoreTestCase):
         # TODO: CHECK_HERE
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
-            certificates_display_behavior=CertificatesDisplayBehaviors.END.value,
+            certificates_display_behavior=CertificatesDisplayBehaviors.END,
         )
         cert = GeneratedCertificateFactory.create(
             user=user,
@@ -142,7 +142,7 @@ class CourseEndingTest(ModuleStoreTestCase):
 
         # test when the display is unavailable or notpassing, we get the correct results out
         # TODO: CHECK_HERE
-        course2.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO.value
+        course2.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO
         cert_status = {'status': 'unavailable', 'mode': 'honor', 'uuid': None}
         assert _cert_info(user, course2, cert_status) == {'status': 'processing', 'show_survey_button': False,
                                                           'can_unenroll': True}
@@ -178,7 +178,7 @@ class CourseEndingTest(ModuleStoreTestCase):
         # TODO: CHECK_HERE
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
-            certificates_display_behavior=CertificatesDisplayBehaviors.END.value,
+            certificates_display_behavior=CertificatesDisplayBehaviors.END,
         )
 
         if cert_grade is not None:
@@ -204,7 +204,7 @@ class CourseEndingTest(ModuleStoreTestCase):
         # TODO: CHECK_HERE
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
-            certificates_display_behavior=CertificatesDisplayBehaviors.END.value,
+            certificates_display_behavior=CertificatesDisplayBehaviors.END,
         )
         cert_status = {'status': 'generating', 'mode': 'honor', 'uuid': None}
 

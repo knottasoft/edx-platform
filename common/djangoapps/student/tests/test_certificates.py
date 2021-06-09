@@ -22,7 +22,7 @@ from lms.djangoapps.certificates.tests.factories import (
 from xmodule.modulestore import ModuleStoreEnum
 from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
-from xmodule.xmodule.course_module import CertificatesDisplayBehaviors
+from xmodule.data import CertificatesDisplayBehaviors
 
 # pylint: disable=no-member
 
@@ -41,7 +41,7 @@ class CertificateDisplayTestBase(SharedModuleStoreTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.course = CourseFactory()
-        cls.course.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO.value
+        cls.course.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO
         # "early_with_info"
         # TODO: CHECK_HERE
 
@@ -120,7 +120,7 @@ class CertificateDashboardMessageDisplayTest(CertificateDisplayTestBase):
     def setUpClass(cls):
         super().setUpClass()
         # TODO: CHECK_HERE
-        cls.course.certificates_display_behavior = CertificatesDisplayBehaviors.END.value
+        cls.course.certificates_display_behavior = CertificatesDisplayBehaviors.END
         cls.course.save()
         cls.store.update_item(cls.course, cls.USERNAME)
 
