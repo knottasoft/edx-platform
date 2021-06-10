@@ -56,6 +56,10 @@ class CourseOverview(TimeStampedModel):
         course catalog (courses to enroll in)
         course about (meta data about the course)
 
+    When you bump the VERSION you will invalidate all existing course overviews. This
+    will cause a slew of modulestore reads as each course needs to be re-cached into
+    the course overview.
+
     .. no_pii:
     """
 
@@ -209,13 +213,15 @@ class CourseOverview(TimeStampedModel):
         course_overview.course_image_url = course_image_url(course)
         course_overview.social_sharing_url = course.social_sharing_url
 
+        self._validate_certificate_settings(course)
+
         course_overview.certificates_display_behavior = course.certificates_display_behavior
+        course_overview.certificate_available_date = course.certificate_available_date
         course_overview.certificates_show_before_end = course.certificates_show_before_end
         course_overview.cert_html_view_enabled = course.cert_html_view_enabled
         course_overview.has_any_active_web_certificate = (get_active_web_certificate(course) is not None)
         course_overview.cert_name_short = course.cert_name_short
         course_overview.cert_name_long = course.cert_name_long
-        course_overview.certificate_available_date = course.certificate_available_date
         course_overview.lowest_passing_grade = lowest_passing_grade
         course_overview.end_of_course_survey_url = course.end_of_course_survey_url
 
@@ -888,6 +894,25 @@ class CourseOverview(TimeStampedModel):
         TODO: move this to the model.
         """
         return self._original_course.edxnotes_visibility
+
+    def _validate_certificate_settings(self, course):
+        """
+        Take a course and update it's certificate display settings so they're valid pairings.
+        Updates passed in object.
+
+        Arguments:
+            course (CourseBlock): any course descriptor object
+
+        Returns:
+            None
+        """
+        # Set all invalid entries to "early_no_info" (the new default)
+        if course.certificates_display_behavior not in CertificatesDisplayBehaviors:
+            course.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO
+
+        # Null the date if it's not going to be used
+        if course.certificates_display_behavior != CertificatesDisplayBehaviors.END_WITH_DATE:
+            course.certificate_available_date = None
 
     def __str__(self):
         """Represent ourselves with the course key."""

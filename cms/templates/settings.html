@@ -256,7 +256,7 @@ CMS.URL.UPLOAD_ASSET = '${upload_asset_url | n, js_escaped_string}'
               <div class="field date" id="field-certificates-display-behavior">
                 <label for="certificates-display-behavior">${_("Certificates Display Behavior")}</label>
                 <select id="certificates-display-behavior">
-                  <option value="early_with_info">Immediately upon passing</option>
+                  <option value="early_no_info">Immediately upon passing</option>
                   <option value="end">End date of course</option>
                   <option value="end_with_date">A date after the course end date</option>
                 </select>
@@ -273,16 +273,16 @@ CMS.URL.UPLOAD_ASSET = '${upload_asset_url | n, js_escaped_string}'
                   <div id="certificate-display-behavior-collapsible-content" class="collapsible-content collapsed">
                     <p>In all configurations of this setting, certificates are generated for learners as soon as they achieve the passing threshold in the course (which can occur before a final assignment based on course design)</p>
                     <div>
-                      <div class="collapsible-description-heading">After the Course End Date (48 hours)</div>
-                      <div class="collapsible-description-description">Default setting for instructor-paced courses</div>
+                      <div class="collapsible-description-heading">Immediately upon passing</div>
+                      <div class="collapsible-description-description">Learners can access their certificate as soon as they achieve a passing grade above the course grade threshold. Note: learners can achieve a passing grade before encountering all assignments in some course configurations.</div>
                     </div>
                     <div>
-                      <div class="collapsible-description-heading">After the passing threshold is met</div>
-                      <div class="collapsible-description-description">This can occur before a final assignment based on course design</div>
+                      <div class="collapsible-description-heading">On course end date</div>
+                      <div class="collapsible-description-description">Learners with passing grades can access their certificate once the end date of the course has elapsed.</div>
                     </div>
                     <div>
-                      <div class="collapsible-description-heading">A later date after the Course End Date</div>
-                      <div class="collapsible-description-description">After a new scheduled date has passed</div>
+                      <div class="collapsible-description-heading">A date after the course end date</div>
+                      <div class="collapsible-description-description">Learners with passing grades can access their certificate after the date that you set has elapsed.</div>
                     </div>
                   </div>
                 </div>

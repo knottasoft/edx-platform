@@ -43,7 +43,11 @@ define(['backbone', 'underscore', 'gettext', 'js/models/validation_helpers', 'js
                 // Returns either nothing (no return call) so that validate works or an object of {field: errorstring} pairs
                 // A bit funny in that the video key validation is asynchronous; so, it won't stop the validation.
                 var errors = {};
-                const CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS = ["end", "end_with_date", "early_no_info"];
+                const CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS = {
+                    END: "end",
+                    END_WITH_DATE: "end_with_date",
+                    EARLY_NO_INFO: "early_no_info"
+                };
 
                 newattrs = DateUtils.convertDateStringsToObjects(
                     newattrs,
@@ -84,7 +88,7 @@ define(['backbone', 'underscore', 'gettext', 'js/models/validation_helpers', 'js
                 // and add validation for it.
                 if (
                     newattrs.certificates_display_behavior
-                    && !CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS.includes(newattrs.certificates_display_behavior)
+                    && !(Object.values(CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS).includes(newattrs.certificates_display_behavior))
                 ) {
 
                     errors.certificates_display_behavior = StringUtils.interpolate(
@@ -93,6 +97,21 @@ define(['backbone', 'underscore', 'gettext', 'js/models/validation_helpers', 'js
                         ),
                         {
                             behavior_options: CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS.join(', ')
+                        }
+                    );
+                }
+
+                // Throw error if there's a value for certificate_available_date
+                if(
+                    (newattrs.certificate_available_date && newattrs.certificates_display_behavior != CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS.END_WITH_DATE)
+                    || (!newattrs.certificate_available_date && newattrs.certificates_display_behavior == CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS.END_WITH_DATE)
+                ){
+                    errors.certificates_display_behavior = StringUtils.interpolate(
+                        gettext(
+                            "The certificates display behavior must be {valid_option} if certificate available date is set."
+                        ),
+                        {
+                            valid_option: CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS.END_WITH_DATE
                         }
                     );
                 }
