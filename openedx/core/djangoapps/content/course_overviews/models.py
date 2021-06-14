@@ -213,7 +213,7 @@ class CourseOverview(TimeStampedModel):
         course_overview.course_image_url = course_image_url(course)
         course_overview.social_sharing_url = course.social_sharing_url
 
-        self._validate_certificate_settings(course)
+        cls.validate_certificate_settings(course)
 
         course_overview.certificates_display_behavior = course.certificates_display_behavior
         course_overview.certificate_available_date = course.certificate_available_date
@@ -895,7 +895,8 @@ class CourseOverview(TimeStampedModel):
         """
         return self._original_course.edxnotes_visibility
 
-    def _validate_certificate_settings(self, course):
+    @staticmethod
+    def validate_certificate_settings(course):
         """
         Take a course and update it's certificate display settings so they're valid pairings.
         Updates passed in object.
@@ -907,7 +908,7 @@ class CourseOverview(TimeStampedModel):
             None
         """
         # Set all invalid entries to "early_no_info" (the new default)
-        if course.certificates_display_behavior not in CertificatesDisplayBehaviors:
+        if not CertificatesDisplayBehaviors.includes_value(course.certificates_display_behavior):
             course.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO
 
         # Null the date if it's not going to be used
