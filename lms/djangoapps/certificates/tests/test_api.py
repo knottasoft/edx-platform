@@ -233,7 +233,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
         (False, -timedelta(days=2), CertificatesDisplayBehaviors.END, True, None),
         (False, timedelta(days=2), CertificatesDisplayBehaviors.END, True, None),
         (False, -timedelta(days=2), CertificatesDisplayBehaviors.END_WITH_DATE, True, None),
-        (False, timedelta(days=2), CertificatesDisplayBehaviors.END_WITH_DATE, False, None),
+        (False, timedelta(days=2), CertificatesDisplayBehaviors.END_WITH_DATE, False, True),
     )
     @ddt.unpack
     @patch.dict(settings.FEATURES, {'CERTIFICATES_HTML_VIEW': True})

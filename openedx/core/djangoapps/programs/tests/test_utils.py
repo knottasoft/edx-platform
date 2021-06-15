@@ -500,7 +500,7 @@ class TestProgramProgressMeter(ModuleStoreTestCase):
             end=two_days_ago,
             self_paced=False,
             certificate_available_date=tomorrow,
-            certificates_display_behavior=CertificatesDisplayBehaviors.END
+            certificates_display_behavior=CertificatesDisplayBehaviors.END_WITH_DATE
         )
         # TODO: CHECK_HERE
         third_course_run_key = str(course3.id)
@@ -609,6 +609,7 @@ class TestProgramProgressMeter(ModuleStoreTestCase):
         # 3 certs, all available, program cert in the past/now
         course3_overview = CourseOverview.get_from_id(course3.id)
         course3_overview.certificate_available_date = yesterday
+        course3_overview.certificates_display_behavior = CertificatesDisplayBehaviors.END_WITH_DATE
         course3_overview.save()
         meter = ProgramProgressMeter(self.site, self.user)
         self._assert_progress(
@@ -624,7 +625,7 @@ class TestProgramProgressMeter(ModuleStoreTestCase):
     def test_old_course_runs(self, mock_get_programs):
         """
         Test that old course runs may exist for a program which do not exist in LMS.
-        In that case, continue considering the course run to've been failed by the learner
+        In that case, continue considering the course run to have been failed by the learner
         """
         course_run = CourseRunFactory.create()
         course = CourseFactory.create(course_runs=[course_run])
