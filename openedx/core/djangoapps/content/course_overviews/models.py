@@ -103,7 +103,7 @@ class CourseOverview(TimeStampedModel):
     certificates_display_behavior = TextField(
         null=True,
         choices=[(choice.value, choice.name) for choice in CertificatesDisplayBehaviors],
-        default=CertificatesDisplayBehaviors.EARLY_NO_INFO
+        default=CertificatesDisplayBehaviors.END
     )
     certificates_show_before_end = BooleanField(default=False)
     cert_html_view_enabled = BooleanField(default=False)
@@ -907,9 +907,17 @@ class CourseOverview(TimeStampedModel):
         Returns:
             None
         """
-        # Set all invalid entries to "early_no_info" (the new default)
+        # Backwards compatibility for existing courses that set availability date, didn't set behavior,
+        # and expect availability date to be used
+        if course.certificates_display_behavior == "" and course.certificate_available_date:
+            course.certificates_display_behavior = CertificatesDisplayBehaviors.END_WITH_DATE
+
+        # Set all invalid entries to "early_no_info" (the new default) TODO: Review that we can make END the default
+        # if not CertificatesDisplayBehaviors.includes_value(course.certificates_display_behavior):
+        #     course.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO
+
         if not CertificatesDisplayBehaviors.includes_value(course.certificates_display_behavior):
-            course.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO
+            course.certificates_display_behavior = CertificatesDisplayBehaviors.END
 
         # Null the date if it's not going to be used
         if course.certificates_display_behavior != CertificatesDisplayBehaviors.END_WITH_DATE:

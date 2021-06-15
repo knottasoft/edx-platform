@@ -564,7 +564,7 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
             "passing students as soon as certificates are generated, enter early_no_info."
         ),
         scope=Scope.settings,
-        default=CertificatesDisplayBehaviors.EARLY_NO_INFO,
+        default=CertificatesDisplayBehaviors.END,
     )
     course_image = String(
         display_name=_("Course About Page Image"),
