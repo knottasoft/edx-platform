@@ -110,12 +110,32 @@ class HasEndedMayCertifyTestCase(unittest.TestCase):
         past_end = (datetime.now() - timedelta(days=12)).strftime("%Y-%m-%dT%H:%M:00")
         future_end = (datetime.now() + timedelta(days=12)).strftime("%Y-%m-%dT%H:%M:00")
         # TODO: CHECK_HERE
-        self.past_show_certs = get_dummy_course("2012-01-01T12:00", end=past_end, certs=CertificatesDisplayBehaviors.EARLY_NO_INFO)
-        self.past_show_certs_no_info = get_dummy_course("2012-01-01T12:00", end=past_end, certs=CertificatesDisplayBehaviors.EARLY_NO_INFO)
-        self.past_noshow_certs = get_dummy_course("2012-01-01T12:00", end=past_end, certs=CertificatesDisplayBehaviors.END)
+        self.past_show_certs = get_dummy_course(
+            "2012-01-01T12:00",
+            end=past_end,
+            certs=CertificatesDisplayBehaviors.EARLY_NO_INFO
+        )
+        self.past_show_certs_no_info = get_dummy_course(
+            "2012-01-01T12:00",
+            end=past_end,
+            certs=CertificatesDisplayBehaviors.EARLY_NO_INFO
+        )
+        self.past_noshow_certs = get_dummy_course(
+            "2012-01-01T12:00",
+            end=past_end,
+            certs=CertificatesDisplayBehaviors.END
+        )
 
-        self.future_show_certs_no_info = get_dummy_course("2012-01-01T12:00", end=future_end, certs=CertificatesDisplayBehaviors.EARLY_NO_INFO)
-        self.future_noshow_certs = get_dummy_course("2012-01-01T12:00", end=future_end, certs=CertificatesDisplayBehaviors.END)
+        self.future_show_certs_no_info = get_dummy_course(
+            "2012-01-01T12:00",
+            end=future_end,
+            certs=CertificatesDisplayBehaviors.EARLY_NO_INFO
+        )
+        self.future_noshow_certs = get_dummy_course(
+            "2012-01-01T12:00",
+            end=future_end,
+            certs=CertificatesDisplayBehaviors.END
+        1)
 
     def test_has_ended(self):
         """Check that has_ended correctly tells us when a course is over."""

@@ -78,7 +78,10 @@ class CourseOverviewSignalsTestCase(ModuleStoreTestCase):
 
     def assert_changed_signal_sent(self, changes, mock_signal):  # lint-amnesty, pylint: disable=missing-function-docstring
 
-        course = CourseFactory.create(emit_signals=True, **{change.field_name: change.initial_value for change in changes})
+        course = CourseFactory.create(
+            emit_signals=True,
+            **{change.field_name: change.initial_value for change in changes}
+        )
 
         # changing display name doesn't fire the signal
         course.display_name = course.display_name + 'changed'
@@ -103,6 +106,10 @@ class CourseOverviewSignalsTestCase(ModuleStoreTestCase):
     def test_cert_date_changed(self, mock_signal):
         changes = [
             Change("certificate_available_date", self.TODAY, self.NEXT_WEEK),
-            Change("certificates_display_behavior", CertificatesDisplayBehaviors.END, CertificatesDisplayBehaviors.END_WITH_DATE)
+            Change(
+                "certificates_display_behavior",
+                CertificatesDisplayBehaviors.END,
+                CertificatesDisplayBehaviors.END_WITH_DATE
+            )
         ]
         self.assert_changed_signal_sent(changes, mock_signal)
