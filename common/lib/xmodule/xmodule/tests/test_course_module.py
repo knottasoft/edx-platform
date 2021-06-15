@@ -135,7 +135,7 @@ class HasEndedMayCertifyTestCase(unittest.TestCase):
             "2012-01-01T12:00",
             end=future_end,
             certs=CertificatesDisplayBehaviors.END
-        1)
+        )
 
     def test_has_ended(self):
         """Check that has_ended correctly tells us when a course is over."""
