@@ -35,6 +35,7 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                 this.$el.find('#course-name').val(this.model.get('run'));
                 this.$el.find('.set-date').datepicker({ dateFormat: 'm/d/yy' });
                 this.$el.find("#certificates-display-behavior").val(this.model.get("certificates_display_behavior"));
+                this.updateCertificatesDisplayBehavior();
 
                 // Avoid showing broken image on mistyped/nonexistent image
                 this.$el.find('img').error(function () {
@@ -112,6 +113,8 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                 } else this.$el.find('.remove-course-introduction-video').hide();
 
                 this.$el.find('#' + this.fieldToSelectorMap.effort).val(this.model.get('effort'));
+                this.$el.find("#" + this.fieldToSelectorMap.certificates_display_behavior).val(this.model.get('certificates_display_behavior'));
+                this.updateCertificatesDisplayBehavior();
 
                 var courseImageURL = this.model.get('course_image_asset_path');
                 this.$el.find('#course-image-url').val(courseImageURL);
@@ -304,6 +307,10 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                     case 'course-pace-instructor-paced':
                         this.model.set('self_paced', JSON.parse(event.currentTarget.value));
                         break;
+                    case 'certificates-display-behavior':
+                        this.setField(event);
+                        this.updateCertificatesDisplayBehavior();
+                        break;
                     case 'course-language':
                     case 'course-effort':
                     case 'course-title':
@@ -311,7 +318,6 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                     case 'course-duration':
                     case 'course-description':
                     case 'course-short-description':
-                    case 'certificates-display-behavior':
                         this.setField(event);
                         break;
                     default: // Everything else is handled by datepickers and CodeMirror.
@@ -379,6 +385,29 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                 }
             },
 
+            updateCertificatesDisplayBehavior: function() {
+                /*
+                Hides and clears the certificate available date field if a display behavior that doesn't use it is
+                chosen. Because we are clearing it, toggling back to "end_with_date" will require re-entering the date
+                */
+               console.info("IN UPDATER");
+                let showDatepicker = this.model.get("certificates_display_behavior") == "end_with_date";
+                let datepicker = this.$el.find('#certificate-available-date');
+                let certificateAvailableDateField = this.$el.find('#field-certificate-available-date');
+
+                if (showDatepicker) {
+                    console.info("Value is end_with_date");
+                    datepicker.prop('disabled', false);
+                    certificateAvailableDateField.removeClass("hidden");
+                } else {
+                    console.info("Value is NOT end_with_date");
+                    datepicker.prop('disabled', true);
+                    datepicker.val(null);
+                    this.clearValidationErrors();
+                    this.setAndValidate("certificate_available_date", null)
+                    certificateAvailableDateField.addClass("hidden");
+                }
+            },
             revertView: function () {
                 // Make sure that the CodeMirror instance has the correct
                 // data from its corresponding textarea

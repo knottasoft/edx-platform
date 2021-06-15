@@ -166,6 +166,8 @@
       }
 
       .collapsible-content{
+        font-size: 12px;
+        padding-top: ($baseline/2);
         .collapsible-description-heading {
           font-weight: bold;
           margin-top: $baseline;
