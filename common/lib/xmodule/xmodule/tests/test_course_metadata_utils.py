@@ -164,17 +164,35 @@ class CourseMetadataUtilsTestCase(TestCase):
                 TestScenario((DEFAULT_START_DATE, None), True),
             ]),
             # TODO: CHECK_HERE
+
+            # certificates_display_behavior,
+            # certificates_show_before_end,
+            # has_ended,
+            # certificate_available_date,
+            # self_paced
             FunctionTest(may_certify_for_course, [
-                TestScenario((CertificatesDisplayBehaviors.EARLY_WITH_INFO, True, True, test_datetime, False), True),
-                TestScenario((CertificatesDisplayBehaviors.EARLY_NO_INFO, False, False, test_datetime, False), True),
+                # Test certificates_show_before_end
+                TestScenario((CertificatesDisplayBehaviors.EARLY_NO_INFO, True, False, test_datetime, False), True),
                 TestScenario((CertificatesDisplayBehaviors.END, True, False, test_datetime, False), True),
+                TestScenario((CertificatesDisplayBehaviors.END_WITH_DATE, True, False, _NEXT_WEEK, False), True),
+
+                # Test that EARLY_NO_INFO
+                TestScenario((CertificatesDisplayBehaviors.EARLY_NO_INFO, True, True, test_datetime, False), True),
+                TestScenario((CertificatesDisplayBehaviors.EARLY_NO_INFO, False, False, test_datetime, False), True),
+
+                # Test END_WITH_DATE
+                TestScenario((CertificatesDisplayBehaviors.END_WITH_DATE, False, False, test_datetime, False), True),
+                TestScenario((CertificatesDisplayBehaviors.END_WITH_DATE, False, False, _LAST_WEEK, False), True),
+                TestScenario((CertificatesDisplayBehaviors.END_WITH_DATE, False, False, _NEXT_WEEK, False), False),
+                TestScenario((CertificatesDisplayBehaviors.END_WITH_DATE, False, False, None, False), False),
+
+                # Test END
+                TestScenario((CertificatesDisplayBehaviors.END, False, False, test_datetime, False), False),
                 TestScenario((CertificatesDisplayBehaviors.END, False, True, test_datetime, False), True),
-                TestScenario((CertificatesDisplayBehaviors.END, False, False, _NEXT_WEEK, False), False),
-                TestScenario((CertificatesDisplayBehaviors.END, False, False, _LAST_WEEK, False), True),
-                TestScenario((CertificatesDisplayBehaviors.END, False, False, None, False), False),
-                TestScenario((CertificatesDisplayBehaviors.EARLY_NO_INFO, False, False, None, False), True),
-                TestScenario((CertificatesDisplayBehaviors.END, False, False, _NEXT_WEEK, False), False),
-                TestScenario((CertificatesDisplayBehaviors.END, False, False, _NEXT_WEEK, True), True),
+
+                # Test self_paced
+                TestScenario((CertificatesDisplayBehaviors.END, False, False, test_datetime, False), False),
+                TestScenario((CertificatesDisplayBehaviors.END, False, False, test_datetime, True), True),
             ]),
         ]
 

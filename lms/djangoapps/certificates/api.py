@@ -594,6 +594,13 @@ def certificates_viewable_for_course(course):
     """
     Returns True if certificates are viewable for any student enrolled in the course, False otherwise.
     """
+    # raise Exception([
+    #     course.self_paced,
+    #     course.certificates_show_before_end,
+    #     course.certificates_display_behavior,
+    #     course.certificate_available_date,
+    #     course.has_ended,
+    # ])
     if course.self_paced:
         return True
     if (
@@ -603,6 +610,7 @@ def certificates_viewable_for_course(course):
         return True
     if (
         course.certificates_display_behavior == CertificatesDisplayBehaviors.END_WITH_DATE
+        and course.certificate_available_date
         and course.certificate_available_date <= datetime.now(UTC)
     ):
         return True

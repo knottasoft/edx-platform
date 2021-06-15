@@ -120,7 +120,7 @@ class CertificateDashboardMessageDisplayTest(CertificateDisplayTestBase):
     def setUpClass(cls):
         super().setUpClass()
         # TODO: CHECK_HERE
-        cls.course.certificates_display_behavior = CertificatesDisplayBehaviors.END
+        cls.course.certificates_display_behavior = CertificatesDisplayBehaviors.END_WITH_DATE
         cls.course.save()
         cls.store.update_item(cls.course, cls.USERNAME)
 
