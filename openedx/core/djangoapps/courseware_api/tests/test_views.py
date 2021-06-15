@@ -50,6 +50,7 @@ User = get_user_model()
 
 _NEXT_WEEK = datetime.now() + timedelta(days=7)
 
+
 @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
 class BaseCoursewareTests(SharedModuleStoreTestCase):
     """

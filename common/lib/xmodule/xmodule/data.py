@@ -5,6 +5,7 @@ See OEP-49 for details
 """
 from enum import Enum, EnumMeta
 
+
 class CertificatesDisplayBehaviors(str, Enum):
     END = "end"
     END_WITH_DATE = "end_with_date"

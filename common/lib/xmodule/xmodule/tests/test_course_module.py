@@ -397,6 +397,7 @@ class CourseBlockTestCase(unittest.TestCase):
         """
         assert self.course.number == COURSE
 
+
 class ProctoringProviderTestCase(unittest.TestCase):
     """
     Tests for ProctoringProvider, including the default value, validation, and inheritance behavior.

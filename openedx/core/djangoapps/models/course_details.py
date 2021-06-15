@@ -254,7 +254,6 @@ class CourseDetails:
             descriptor.certificates_display_behavior = jsondict['certificates_display_behavior']
             dirty = True
 
-
         if 'course_image_name' in jsondict and jsondict['course_image_name'] != descriptor.course_image:
             descriptor.course_image = jsondict['course_image_name']
             dirty = True

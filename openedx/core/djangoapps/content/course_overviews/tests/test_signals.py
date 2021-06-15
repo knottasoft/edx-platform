@@ -17,6 +17,7 @@ from ..models import CourseOverview
 # represents a change of a course overview field. Used to avoid confusing indicies
 Change = namedtuple("Change", ["field_name", "initial_value", "changed_value"])
 
+
 @ddt.ddt
 class CourseOverviewSignalsTestCase(ModuleStoreTestCase):
     """
@@ -105,4 +106,3 @@ class CourseOverviewSignalsTestCase(ModuleStoreTestCase):
             Change("certificates_display_behavior", CertificatesDisplayBehaviors.END, CertificatesDisplayBehaviors.END_WITH_DATE)
         ]
         self.assert_changed_signal_sent(changes, mock_signal)
-
