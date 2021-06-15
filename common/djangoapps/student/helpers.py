@@ -514,10 +514,6 @@ def _cert_info(user, course_overview, cert_status):
     if (
         not certificates_viewable_for_course(course_overview)
         and CertificateStatuses.is_passing_status(status)
-        and course_overview.certificates_display_behavior in (
-            CertificatesDisplayBehaviors.END_WITH_DATE,
-            CertificatesDisplayBehaviors.END
-        )
     ):
         status = certificate_earned_but_not_available_status
 

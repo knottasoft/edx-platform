@@ -594,13 +594,6 @@ def certificates_viewable_for_course(course):
     """
     Returns True if certificates are viewable for any student enrolled in the course, False otherwise.
     """
-    # raise Exception([
-    #     course.self_paced,
-    #     course.certificates_show_before_end,
-    #     course.certificates_display_behavior,
-    #     course.certificate_available_date,
-    #     course.has_ended,
-    # ])
     if course.self_paced:
         return True
     if (
