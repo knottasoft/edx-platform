@@ -22,7 +22,7 @@ define([
                 enrollment_start: '2014-10-00T00:00:00Z',
                 enrollment_end: '2014-11-05T00:00:00Z',
                 certificates_display_behavior: 'end',
-                certificate_available_date: '2014-11-05T20:00:00Z',
+                certificate_available_date: null,
                 org: '',
                 course_id: '',
                 run: '',
