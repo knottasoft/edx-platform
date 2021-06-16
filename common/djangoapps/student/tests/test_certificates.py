@@ -136,8 +136,6 @@ class CertificateDashboardMessageDisplayTest(CertificateDisplayTestBase):
             self.assertContains(response, test_message)
             self.assertNotContains(response, "View Test_Certificate")
 
-
-
     @ddt.data(
         (CertificatesDisplayBehaviors.END, True),
         (CertificatesDisplayBehaviors.END, False),

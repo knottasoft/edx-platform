@@ -153,11 +153,7 @@ class CourseApiTestViews(BaseCoursewareTests, MasqueradeMixin):
                 CourseEnrollment.enroll(self.user, self.course.id, enrollment_mode)
 
             response = self.client.get(self.url)
-            # TODO DELETE
-            # if enrollment_mode == "verified":
-            #     raise Exception(self.url)
 
-            # TODO DELETE ^
             assert response.status_code == 200
             if enrollment_mode:
                 enrollment = response.data['enrollment']

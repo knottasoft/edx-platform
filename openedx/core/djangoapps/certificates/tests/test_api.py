@@ -170,7 +170,6 @@ class CertificatesApiTestCase(TestCase):
             self.course.certificate_available_date = datetime(2017, 2, 1, tzinfo=pytz.UTC)
             self.course.certificates_display_behavior = CertificatesDisplayBehaviors.END_WITH_DATE
             maybe_avail = self.course.certificate_available_date if uses_avail_date else self.certificate.modified_date
-            # raise Exception(maybe_avail, api.available_date_for_certificate(self.course, self.certificate))
             assert maybe_avail == api.available_date_for_certificate(self.course, self.certificate)
             assert maybe_avail == api.display_date_for_certificate(self.course, self.certificate)
 
