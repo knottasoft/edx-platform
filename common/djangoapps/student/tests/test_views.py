@@ -260,6 +260,7 @@ class StudentDashboardTests(SharedModuleStoreTestCase, MilestonesTestCaseMixin, 
             id=course_key,
             end_date=ONE_WEEK_AGO,
             certificate_available_date=now(),
+            certificates_display_behavior=CertificatesDisplayBehaviors.END_WITH_DATE,
             lowest_passing_grade=0.3
         )
         CourseEnrollmentFactory(course_id=course.id, user=self.user)

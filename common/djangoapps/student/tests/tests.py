@@ -79,6 +79,7 @@ class CourseEndingTest(ModuleStoreTestCase):
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
             certificates_display_behavior=CertificatesDisplayBehaviors.END,
+            end=datetime.now(pytz.UTC) - timedelta(days=2)
         )
         cert = GeneratedCertificateFactory.create(
             user=user,
@@ -179,6 +180,7 @@ class CourseEndingTest(ModuleStoreTestCase):
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
             certificates_display_behavior=CertificatesDisplayBehaviors.END,
+            end=datetime.now(pytz.UTC) - timedelta(days=2),
         )
 
         if cert_grade is not None:
@@ -205,6 +207,7 @@ class CourseEndingTest(ModuleStoreTestCase):
         course = CourseOverviewFactory.create(
             end_of_course_survey_url=survey_url,
             certificates_display_behavior=CertificatesDisplayBehaviors.END,
+            end=datetime.now(pytz.UTC) - timedelta(days=2),
         )
         cert_status = {'status': 'generating', 'mode': 'honor', 'uuid': None}
 
