@@ -163,13 +163,6 @@ class CourseMetadataUtilsTestCase(TestCase):
                 TestScenario((DEFAULT_START_DATE, advertised_start_parsable), False),
                 TestScenario((DEFAULT_START_DATE, None), True),
             ]),
-            # TODO: CHECK_HERE
-
-            # certificates_display_behavior,
-            # certificates_show_before_end,
-            # has_ended,
-            # certificate_available_date,
-            # self_paced
             FunctionTest(may_certify_for_course, [
                 # Test certificates_show_before_end
                 TestScenario((CertificatesDisplayBehaviors.EARLY_NO_INFO, True, False, test_datetime, False), True),

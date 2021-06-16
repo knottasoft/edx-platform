@@ -502,7 +502,6 @@ class TestProgramProgressMeter(ModuleStoreTestCase):
             certificate_available_date=tomorrow,
             certificates_display_behavior=CertificatesDisplayBehaviors.END_WITH_DATE
         )
-        # TODO: CHECK_HERE
         third_course_run_key = str(course3.id)
 
         data = [
