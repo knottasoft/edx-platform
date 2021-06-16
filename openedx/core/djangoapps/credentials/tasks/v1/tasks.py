@@ -28,7 +28,6 @@ from openedx.core.djangoapps.credentials.models import CredentialsApiConfig
 from openedx.core.djangoapps.credentials.utils import get_credentials_api_client
 from openedx.core.djangoapps.programs.signals import handle_course_cert_awarded, handle_course_cert_changed
 from openedx.core.djangoapps.site_configuration.models import SiteConfiguration
-from xmodule.data import CertificatesDisplayBehaviors
 
 logger = get_task_logger(__name__)
 
