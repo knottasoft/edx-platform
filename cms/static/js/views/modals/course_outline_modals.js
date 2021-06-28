@@ -74,7 +74,6 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
 
             event.preventDefault();
             requestData = this.getRequestData();
-            console.log(requestData);
             if (!_.isEqual(requestData, {metadata: {}})) {
                 XBlockViewUtils.updateXBlockFields(this.model, requestData, {
                     success: this.options.onSave
@@ -397,7 +396,8 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
 
         events: {
             'click .clear-date': 'clearValue',
-            'keyup #due_in': 'validateDueIn'
+            'keyup #due_in': 'validateDueIn',
+            'blur #due_in': 'validateDueIn',
         },
 
         getValue: function() {
@@ -407,11 +407,15 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         validateDueIn: function() {
             if (this.getValue() > 18){
                 this.$('#warning').show();
-                // BaseModal.prototype.disableActionButton.call(this.parent, 'save');
+                BaseModal.prototype.disableActionButton.call(this.parent, 'save');
+            }
+            else if (this.getValue() < 1){
+                this.$('#warning-min').show()
+                BaseModal.prototype.disableActionButton.call(this.parent, 'save');
             }
             else {
                 this.$('#warning').hide();
-                console.log(this.model);
+                this.$('#warning-min').hide();
                 BaseModal.prototype.enableActionButton.call(this.parent, 'save');
             }
         },
@@ -427,7 +431,7 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         },
 
         getRequestData: function() {
-            if (this.getValue() < 18 && this.getValue()) {
+            if (this.getValue() < 18 && this.getValue() > 0) {
                 return {
                     metadata: {
                         due_num_weeks: this.getValue()
