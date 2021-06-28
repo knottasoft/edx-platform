@@ -409,6 +409,28 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
                 BaseModal.prototype.disableActionButton.call(this.parent, 'save');
             }
             else {
+                // HtmlUtils.setHtml(
+                //     this.$el,
+                //     this.template({
+                //         startDate: DateUtils.parseDateFromString(this.model.get('start')),
+                //     })
+                // );
+                // thisTemplate = this.loadTemplate('self-paced-due-date-editor');
+                // html = thisTemplate({
+                //     startDate: DateUtils.parseDateFromString(this.model.get('start')),
+                //     newDueDate: rojected_date.getDate() + this.model.get('due_num_weeks')*7
+                // });
+                // HtmlUtils.setHtml(this.$el, HtmlUtils.HTML(html));
+                var startDate = DateUtils.parseDateFromString(this.model.get('start'))
+                this.$("#startDate").html(this.model.get('start'));
+                this.$("#projectedDueIn").html(startDate.getDate() + this.model.get('due_num_weeks')*7)
+
+                //*HtmlUtils.setHtml(this.$('.projected'), {startDate: DateUtils.parseDateFromString(this.model.get('start')), newDueDate: rojected_date.getDate() + this.model.get('due_num_weeks')*7});
+                this.$('#projected').show();
+                var projected_date = DateUtils.parseDateFromString(this.model.get('start'));
+                console.log(projected_date);
+                projected_date.setDate(projected_date.getDate() + this.model.get('due_num_weeks')*7);
+                console.log(projected_date);
                 this.$('#warning').hide();
                 BaseModal.prototype.enableActionButton.call(this.parent, 'save');
             }

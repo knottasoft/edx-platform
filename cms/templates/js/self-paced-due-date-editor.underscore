@@ -15,6 +15,9 @@
     </li>
 </ul>
 
+<div id="projected" class="message">
+    If a learner starts on <span id="startDate"></span>, this subsection will be due on <span id="projectedDueIn"></span>
+</div>
 <div id="warning" class="message-status error">
     <%- gettext('The maximum number of weeks this subsection can be due in is 18 weeks') %>
 </div>
