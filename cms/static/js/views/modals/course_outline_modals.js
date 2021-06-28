@@ -74,6 +74,7 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
 
             event.preventDefault();
             requestData = this.getRequestData();
+            console.log(requestData);
             if (!_.isEqual(requestData, {metadata: {}})) {
                 XBlockViewUtils.updateXBlockFields(this.model, requestData, {
                     success: this.options.onSave
@@ -404,12 +405,13 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         },
 
         validateDueIn: function() {
-            if (parseInt(this.$('#due_in').val()) > 18){
+            if (this.getValue() > 18){
                 this.$('#warning').show();
-                BaseModal.prototype.disableActionButton.call(this.parent, 'save');
+                // BaseModal.prototype.disableActionButton.call(this.parent, 'save');
             }
             else {
                 this.$('#warning').hide();
+                console.log(this.model);
                 BaseModal.prototype.enableActionButton.call(this.parent, 'save');
             }
         },
@@ -425,7 +427,7 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         },
 
         getRequestData: function() {
-            if (this.getValue() < 18) {
+            if (this.getValue() < 18 && this.getValue()) {
                 return {
                     metadata: {
                         due_num_weeks: this.getValue()
