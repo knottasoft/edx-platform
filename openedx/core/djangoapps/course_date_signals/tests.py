@@ -91,7 +91,6 @@ class SelfPacedDueDatesTests(ModuleStoreTestCase):  # lint-amnesty, pylint: disa
         with modulestore().bulk_operations(self.course.id):
             sequence = ItemFactory(parent=self.course, category="sequential")
             vertical = ItemFactory(parent=sequence, category="vertical")
-            sequence = modulestore().get_item(sequence.location)
             ItemFactory.create(
                 parent=vertical,
                 category='problem',
@@ -114,5 +113,4 @@ class SelfPacedDueDatesTests(ModuleStoreTestCase):  # lint-amnesty, pylint: disa
                 (ungraded_problem_2.location, {'due': None}),
                 (graded_problem_1.location, {'due': 5}),
             ]
-            sequence = modulestore().get_item(sequence.location)
             self.assertCountEqual(_gather_graded_items(sequence, 5), expected_graded_items)

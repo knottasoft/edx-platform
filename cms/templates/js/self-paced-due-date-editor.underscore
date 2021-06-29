@@ -15,11 +15,11 @@
     </li>
 </ul>
 
-<div id="warning" class="message-status error">
+<div id="due-num-weeks-warning-max" class="message-status error">
     <%- gettext('The maximum number of weeks this subsection can be due in is 18 weeks.') %>
 </div>
 
-<div id="warning-min" class="message-status error">
+<div id="due-num-weeks-warning-min" class="message-status error">
     <%- gettext('The minimum number of weeks this subsection can be due in is 1 week.') %>
 </div>
 

@@ -406,16 +406,16 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
 
         validateDueIn: function() {
             if (this.getValue() > 18){
-                this.$('#warning').show();
+                this.$('#due-num-weeks-warning-max').show();
                 BaseModal.prototype.disableActionButton.call(this.parent, 'save');
             }
             else if (this.getValue() < 1){
-                this.$('#warning-min').show()
+                this.$('#due-num-weeks-warning-min').show()
                 BaseModal.prototype.disableActionButton.call(this.parent, 'save');
             }
             else {
-                this.$('#warning').hide();
-                this.$('#warning-min').hide();
+                this.$('#due-num-weeks-warning-max').hide();
+                this.$('#due-num-weeks-warning-min').hide();
                 BaseModal.prototype.enableActionButton.call(this.parent, 'save');
             }
         },
@@ -431,7 +431,7 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         },
 
         getRequestData: function() {
-            if (this.getValue() < 18 && this.getValue() > 0) {
+            if (this.getValue() < 19 && this.getValue() > 0) {
                 return {
                     metadata: {
                         due_num_weeks: this.getValue()
@@ -1130,7 +1130,6 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
                     tabs[0].editors = [ReleaseDateEditor, GradingEditor, DueDateEditor];
                     tabs[1].editors = [ContentVisibilityEditor, ShowCorrectnessEditor];
 
-                    // If course is self paced and the custom PLS flag is active
                     if (course.get('self_paced') && course.get('is_custom_pls_active')) {
                         tabs[0].editors.push(SelfPacedDueDateEditor);
                     }
