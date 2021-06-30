@@ -912,10 +912,6 @@ class CourseOverview(TimeStampedModel):
         if course.certificates_display_behavior == "" and course.certificate_available_date:
             course.certificates_display_behavior = CertificatesDisplayBehaviors.END_WITH_DATE
 
-        # Set all invalid entries to "early_no_info" (the new default) TODO: Review that we can make END the default
-        # if not CertificatesDisplayBehaviors.includes_value(course.certificates_display_behavior):
-        #     course.certificates_display_behavior = CertificatesDisplayBehaviors.EARLY_NO_INFO
-
         if not CertificatesDisplayBehaviors.includes_value(course.certificates_display_behavior):
             course.certificates_display_behavior = CertificatesDisplayBehaviors.END
 
