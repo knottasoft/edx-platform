@@ -352,8 +352,8 @@ define([
         });
         it('should disallow save with a certificate available date before end date', function() {
             this.model.showCertificateAvailableDate = true;
-            $('#certificates-display-behavior').val('end_with_date');
-            $('#certificate-available-date').val('01/01/2020');
+            $('#certificates-display-behavior').val('end_with_date').trigger('change');
+            $('#certificate-available-date').val('01/01/2020').trigger('change');
             $('#course-end-date').val('01/01/2030').trigger('change');
             expect(this.view.$('.message-error')).toExist();
         });
