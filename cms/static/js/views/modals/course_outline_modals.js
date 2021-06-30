@@ -1127,9 +1127,9 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
                     tabs[0].editors = [ReleaseDateEditor];
                     tabs[1].editors = [StaffLockEditor];
                 } else if (xblockInfo.isSequential()) {
+                    debugger
                     tabs[0].editors = [ReleaseDateEditor, GradingEditor, DueDateEditor];
                     tabs[1].editors = [ContentVisibilityEditor, ShowCorrectnessEditor];
-
                     if (course.get('self_paced') && course.get('is_custom_pls_active')) {
                         tabs[0].editors.push(SelfPacedDueDateEditor);
                     }

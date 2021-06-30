@@ -12,7 +12,7 @@ describe('CourseOutlinePage', function() {
     var createCourseOutlinePage, displayNameInput, model, outlinePage, requests, getItemsOfType, getItemHeaders,
         verifyItemsExpanded, expandItemsAndVerifyState, collapseItemsAndVerifyState, selectBasicSettings,
         selectVisibilitySettings, selectAdvancedSettings, createMockCourseJSON, createMockSectionJSON,
-        createMockSubsectionJSON, verifyTypePublishable, mockCourseJSON, mockEmptyCourseJSON, setSelfPaced,
+        createMockSubsectionJSON, verifyTypePublishable, mockCourseJSON, mockEmptyCourseJSON, setSelfPaced,setSelfPacedCustom,
         mockSingleSectionCourseJSON, createMockVerticalJSON, createMockIndexJSON, mockCourseEntranceExamJSON,
         selectOnboardingExam, createMockCourseJSONWithReviewRules,mockCourseJSONWithReviewRules,
         mockOutlinePage = readFixtures('templates/mock/mock-course-outline-page.underscore'),
@@ -201,6 +201,11 @@ describe('CourseOutlinePage', function() {
         /* global course */
         course.set('self_paced', true);
     };
+
+    setSelfPacedCustom = function() {
+        setSelfPaced();
+        course.set('is_custom_pls_active', true);
+    }
 
     createCourseOutlinePage = function(test, courseJSON, createOnly) {
         requests = AjaxHelpers.requests(test);
@@ -1017,6 +1022,12 @@ describe('CourseOutlinePage', function() {
             $('#grading_type').val(grading_type);
         };
 
+        setEditModalValuesForCustomPacing = function(start_date, due_in, grading_type) {
+            $('#start_date').val(start_date);
+            $('#due_in').val(due_in);
+            $('#grading_type').val(grading_type);
+        };
+
         setContentVisibility = function(visibility) {
             $('input[name=content-visibility][value=' + visibility + ']').prop('checked', true);
         };
@@ -1123,6 +1134,31 @@ describe('CourseOutlinePage', function() {
                 start: '2014-07-09T00:00:00Z',
                 format: 'Lab',
                 due: '2014-07-10T00:00:00Z',
+                has_explicit_staff_lock: true,
+                staff_only_message: true,
+                is_prereq: false,
+                show_correctness: 'never',
+                is_time_limited: true,
+                is_practice_exam: false,
+                is_proctored_exam: false,
+                default_time_limit_minutes: 150,
+                hide_after_due: true
+            }, [
+                createMockVerticalJSON({
+                    has_changes: true,
+                    published: false
+                })
+            ])
+        ]);
+
+        mockCustomPacingServerValuesJson = createMockSectionJSON({
+            release_date: 'Jan 01, 2970 at 05:00 UTC'
+        }, [
+            createMockSubsectionJSON({
+                graded: true,
+                due_num_weeks: 3,
+                start: '2014-07-09T00:00:00Z',
+                format: 'Lab',
                 has_explicit_staff_lock: true,
                 staff_only_message: true,
                 is_prereq: false,
@@ -1256,6 +1292,22 @@ describe('CourseOutlinePage', function() {
             outlinePage.$('.outline-subsection .configure-button').click();
             expect($('.edit-settings-release').length).toBe(0);
             expect($('.grading-due-date').length).toBe(0);
+            expect($('.edit-settings-grading').length).toBe(1);
+            expect($('.edit-content-visibility').length).toBe(1);
+            expect($('.edit-show-correctness').length).toBe(1);
+        });
+
+        it('can show correct editors for self_paced course with custom pacing', function (){
+            var mockCourseJSON = createMockCourseJSON({}, [
+                createMockSectionJSON({}, [
+                    createMockSubsectionJSON({}, [])
+                ])
+            ]);
+            createCourseOutlinePage(this, mockCourseJSON, false);
+            setSelfPacedCustom();
+            outlinePage.$('.outline-subsection .configure-button').click();
+            expect($('.edit-settings-release').length).toBe(0);
+            expect($('.grading-due-date').length).toBe(1);
             expect($('.edit-settings-grading').length).toBe(1);
             expect($('.edit-content-visibility').length).toBe(1);
             expect($('.edit-show-correctness').length).toBe(1);
