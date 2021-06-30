@@ -84,8 +84,6 @@ define(['backbone', 'underscore', 'gettext', 'js/models/validation_helpers', 'js
                 }
 
 
-                // TODO: Determine if certificates_display_behavior and certificate_available_date depend on each other,
-                // and add validation for it.
                 if (
                     newattrs.certificates_display_behavior
                     && !(Object.values(CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS).includes(newattrs.certificates_display_behavior))
