@@ -339,6 +339,8 @@ def _get_user_certificate(request, user, course_key, course, preview_mode=None):
                 and not course.self_paced
             ):
                 modified_date = course.certificate_available_date
+            elif course.certificates_display_behavior == CertificatesDisplayBehaviors.END:
+                modified_date = course.end
             else:
                 modified_date = datetime.now().date()
             user_certificate = GeneratedCertificate(
