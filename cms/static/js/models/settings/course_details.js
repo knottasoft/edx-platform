@@ -94,7 +94,7 @@ define(['backbone', 'underscore', 'gettext', 'js/models/validation_helpers', 'js
                             "The certificate display behavior must be one of: {behavior_options}"
                         ),
                         {
-                            behavior_options: CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS.join(', ')
+                            behavior_options: Object.values(CERTIFICATES_DISPLAY_BEHAVIOR_OPTIONS).join(', ')
                         }
                     );
                 }
