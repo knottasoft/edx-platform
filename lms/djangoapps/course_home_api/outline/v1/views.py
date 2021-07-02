@@ -17,8 +17,6 @@ from rest_framework.exceptions import APIException, ParseError
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from xmodule.course_module import COURSE_VISIBILITY_PUBLIC, COURSE_VISIBILITY_PUBLIC_OUTLINE
-from xmodule.modulestore.django import modulestore
 
 from common.djangoapps.course_modes.models import CourseMode
 from common.djangoapps.student.models import CourseEnrollment
@@ -31,17 +29,20 @@ from lms.djangoapps.course_goals.api import (
     valid_course_goals_ordered
 )
 from lms.djangoapps.course_home_api.outline.v1.serializers import OutlineTabSerializer
-from lms.djangoapps.course_home_api.toggles import course_home_legacy_is_active
+from lms.djangoapps.course_home_api.toggles import (
+    course_home_legacy_is_active,
+)
 from lms.djangoapps.courseware.access import has_access
 from lms.djangoapps.courseware.context_processor import user_timezone_locale_prefs
 from lms.djangoapps.courseware.courses import get_course_date_blocks, get_course_info_section, get_course_with_access
 from lms.djangoapps.courseware.date_summary import TodaysDate
 from lms.djangoapps.courseware.masquerade import is_masquerading, setup_masquerade
 from lms.djangoapps.courseware.views.views import get_cert_data
+from openedx.core.djangoapps.content.learning_sequences.api import (
+    get_user_course_outline,
+    public_api_available as learning_sequences_api_available,
+)
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
-from openedx.core.djangoapps.content.learning_sequences.api import get_user_course_outline
-from openedx.core.djangoapps.content.learning_sequences.api import \
-    public_api_available as learning_sequences_api_available
 from openedx.core.lib.api.authentication import BearerAuthenticationAllowInactiveUser
 from openedx.features.course_duration_limits.access import get_access_expiration_data
 from openedx.features.course_experience import COURSE_ENABLE_UNENROLLED_ACCESS_FLAG
@@ -53,6 +54,8 @@ from openedx.features.course_experience.course_updates import (
 from openedx.features.course_experience.url_helpers import get_learning_mfe_home_url
 from openedx.features.course_experience.utils import get_course_outline_block_tree, get_start_block
 from openedx.features.discounts.utils import generate_offer_data
+from xmodule.course_module import COURSE_VISIBILITY_PUBLIC, COURSE_VISIBILITY_PUBLIC_OUTLINE
+from xmodule.modulestore.django import modulestore
 
 
 class UnableToDismissWelcomeMessage(APIException):
