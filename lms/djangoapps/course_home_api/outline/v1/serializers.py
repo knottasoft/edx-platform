@@ -116,6 +116,7 @@ class OutlineTabSerializer(DatesBannerSerializerMixin, VerifiedModeSerializerMix
     access_expiration = serializers.DictField()
     cert_data = CertificateDataSerializer()
     course_blocks = CourseBlockSerializer()
+    has_scheduled_content = serializers.BooleanField()
     course_goals = CourseGoalsSerializer()
     course_tools = CourseToolSerializer(many=True)
     dates_widget = DatesWidgetSerializer()

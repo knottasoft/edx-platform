@@ -17,10 +17,14 @@ from rest_framework.exceptions import APIException, ParseError
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from xmodule.course_module import COURSE_VISIBILITY_PUBLIC, COURSE_VISIBILITY_PUBLIC_OUTLINE
+from xmodule.modulestore.django import modulestore
 
 from common.djangoapps.course_modes.models import CourseMode
 from common.djangoapps.student.models import CourseEnrollment
 from common.djangoapps.util.views import expose_header
+from lms.djangoapps.course_blocks.api import get_course_blocks
+from lms.djangoapps.course_blocks.transformers import start_date
 from lms.djangoapps.course_goals.api import (
     add_course_goal,
     get_course_goal,
@@ -29,21 +33,21 @@ from lms.djangoapps.course_goals.api import (
     valid_course_goals_ordered
 )
 from lms.djangoapps.course_home_api.outline.v1.serializers import OutlineTabSerializer
-from lms.djangoapps.course_home_api.toggles import (
-    course_home_legacy_is_active,
-)
+from lms.djangoapps.course_home_api.toggles import course_home_legacy_is_active
 from lms.djangoapps.courseware.access import has_access
 from lms.djangoapps.courseware.context_processor import user_timezone_locale_prefs
 from lms.djangoapps.courseware.courses import get_course_date_blocks, get_course_info_section, get_course_with_access
 from lms.djangoapps.courseware.date_summary import TodaysDate
 from lms.djangoapps.courseware.masquerade import is_masquerading, setup_masquerade
 from lms.djangoapps.courseware.views.views import get_cert_data
-from openedx.core.djangoapps.content.learning_sequences.api import (
-    get_user_course_outline,
-    public_api_available as learning_sequences_api_available,
-)
+from openedx.core.djangoapps.content.block_structure.api import get_block_structure_manager
+from openedx.core.djangoapps.content.block_structure.transformers import BlockStructureTransformers
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from openedx.core.djangoapps.content.learning_sequences.api import get_user_course_outline
+from openedx.core.djangoapps.content.learning_sequences.api import \
+    public_api_available as learning_sequences_api_available
 from openedx.core.lib.api.authentication import BearerAuthenticationAllowInactiveUser
+from openedx.features.content_type_gating.block_transformers import ContentTypeGateTransformer
 from openedx.features.course_duration_limits.access import get_access_expiration_data
 from openedx.features.course_experience import COURSE_ENABLE_UNENROLLED_ACCESS_FLAG
 from openedx.features.course_experience.course_tools import CourseToolsPluginManager
@@ -54,8 +58,6 @@ from openedx.features.course_experience.course_updates import (
 from openedx.features.course_experience.url_helpers import get_learning_mfe_home_url
 from openedx.features.course_experience.utils import get_course_outline_block_tree, get_start_block
 from openedx.features.discounts.utils import generate_offer_data
-from xmodule.course_module import COURSE_VISIBILITY_PUBLIC, COURSE_VISIBILITY_PUBLIC_OUTLINE
-from xmodule.modulestore.django import modulestore
 
 
 class UnableToDismissWelcomeMessage(APIException):
@@ -133,6 +135,7 @@ class OutlineTabView(RetrieveAPIView):
             can_enroll: (bool) Whether the user can enroll in the given course
             extra_text: (str)
         handouts_html: (str) Raw HTML for the handouts section of the course info
+        has_scheduled_content: (bool) Whether the course has future content
         has_ended: (bool) Indicates whether course has ended
         offer: An object detailing upgrade discount information
             code: (str) Checkout code
@@ -312,10 +315,25 @@ class OutlineTabView(RetrieveAPIView):
                     )
                 ] if 'children' in chapter_data else []
 
+        # Get has_scheduled_content data
+        collected_block_structure = get_block_structure_manager(course_key).get_collected()
+        transformers = BlockStructureTransformers()
+        transformers += [start_date.StartDateTransformer(), ContentTypeGateTransformer()]
+        usage_key = collected_block_structure.root_block_usage_key
+        scheduled_content_blocks = get_course_blocks(
+            request.user,
+            usage_key,
+            transformers=transformers,
+            collected_block_structure=collected_block_structure,
+            include_has_scheduled_content=True
+        )
+        has_scheduled_content = scheduled_content_blocks.get_xblock_field(usage_key, 'has_scheduled_content')
+
         data = {
             'access_expiration': access_expiration,
             'cert_data': cert_data,
             'course_blocks': course_blocks,
+            'has_scheduled_content': has_scheduled_content,
             'course_goals': course_goals,
             'course_tools': course_tools,
             'dates_widget': dates_widget,
