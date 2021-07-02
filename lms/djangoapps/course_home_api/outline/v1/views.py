@@ -315,25 +315,10 @@ class OutlineTabView(RetrieveAPIView):
                     )
                 ] if 'children' in chapter_data else []
 
-        # Get has_scheduled_content data
-        collected_block_structure = get_block_structure_manager(course_key).get_collected()
-        transformers = BlockStructureTransformers()
-        transformers += [start_date.StartDateTransformer(), ContentTypeGateTransformer()]
-        usage_key = collected_block_structure.root_block_usage_key
-        scheduled_content_blocks = get_course_blocks(
-            request.user,
-            usage_key,
-            transformers=transformers,
-            collected_block_structure=collected_block_structure,
-            include_has_scheduled_content=True
-        )
-        has_scheduled_content = scheduled_content_blocks.get_xblock_field(usage_key, 'has_scheduled_content')
-
         data = {
             'access_expiration': access_expiration,
             'cert_data': cert_data,
             'course_blocks': course_blocks,
-            'has_scheduled_content': has_scheduled_content,
             'course_goals': course_goals,
             'course_tools': course_tools,
             'dates_widget': dates_widget,

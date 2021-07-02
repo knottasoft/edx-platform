@@ -99,6 +99,7 @@ def get_course_outline_block_tree(request, course_id, user=None, allow_start_dat
         requested_fields=[
             'children',
             'contains_gated_content',
+            'has_scheduled_content',
             'display_name',
             'due',
             'effort_activities',
