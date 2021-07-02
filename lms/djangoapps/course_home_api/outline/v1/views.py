@@ -23,8 +23,6 @@ from xmodule.modulestore.django import modulestore
 from common.djangoapps.course_modes.models import CourseMode
 from common.djangoapps.student.models import CourseEnrollment
 from common.djangoapps.util.views import expose_header
-from lms.djangoapps.course_blocks.api import get_course_blocks
-from lms.djangoapps.course_blocks.transformers import start_date
 from lms.djangoapps.course_goals.api import (
     add_course_goal,
     get_course_goal,
@@ -40,14 +38,11 @@ from lms.djangoapps.courseware.courses import get_course_date_blocks, get_course
 from lms.djangoapps.courseware.date_summary import TodaysDate
 from lms.djangoapps.courseware.masquerade import is_masquerading, setup_masquerade
 from lms.djangoapps.courseware.views.views import get_cert_data
-from openedx.core.djangoapps.content.block_structure.api import get_block_structure_manager
-from openedx.core.djangoapps.content.block_structure.transformers import BlockStructureTransformers
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from openedx.core.djangoapps.content.learning_sequences.api import get_user_course_outline
 from openedx.core.djangoapps.content.learning_sequences.api import \
     public_api_available as learning_sequences_api_available
 from openedx.core.lib.api.authentication import BearerAuthenticationAllowInactiveUser
-from openedx.features.content_type_gating.block_transformers import ContentTypeGateTransformer
 from openedx.features.course_duration_limits.access import get_access_expiration_data
 from openedx.features.course_experience import COURSE_ENABLE_UNENROLLED_ACCESS_FLAG
 from openedx.features.course_experience.course_tools import CourseToolsPluginManager
@@ -104,6 +99,7 @@ class OutlineTabView(RetrieveAPIView):
                 children: (list) If the block has child blocks, a list of IDs of
                     the child blocks.
                 resume_block: (bool) Whether the block is the resume block
+                has_scheduled_content: (bool) Whether the block has more content scheduled for the future
         course_goals:
             goal_options: (list) A list of goals where each goal is represented as a tuple (goal_key, goal_string)
             selected_goal:
@@ -135,7 +131,6 @@ class OutlineTabView(RetrieveAPIView):
             can_enroll: (bool) Whether the user can enroll in the given course
             extra_text: (str)
         handouts_html: (str) Raw HTML for the handouts section of the course info
-        has_scheduled_content: (bool) Whether the course has future content
         has_ended: (bool) Indicates whether course has ended
         offer: An object detailing upgrade discount information
             code: (str) Checkout code
