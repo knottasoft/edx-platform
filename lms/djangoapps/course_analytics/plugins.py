@@ -3,7 +3,7 @@ from courseware.tabs import CourseTab
 from django.conf import settings
 
 
-class MyCustomTab(CourseTab):
+class CourseAnalyticsTab(CourseTab):
     """
     The representation of the course teams view type.
     """
