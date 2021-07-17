@@ -37,6 +37,7 @@ setup(
             "teams = lms.djangoapps.teams.plugins:TeamsTab",
             "textbooks = lms.djangoapps.courseware.tabs:TextbookTabs",
             "wiki = lms.djangoapps.course_wiki.tab:WikiTab",
+            "course_analytics = lms.djangoapps.course_analytics.plugins:CourseAnalyticsTab"
         ],
         "openedx.course_app": [
             "calculator = lms.djangoapps.courseware.plugins:CalculatorCourseApp",

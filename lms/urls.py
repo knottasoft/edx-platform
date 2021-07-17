@@ -1007,3 +1007,14 @@ if settings.FEATURES.get('ENABLE_BULK_USER_RETIREMENT'):
     urlpatterns += [
         url(r'', include('lms.djangoapps.bulk_user_retirement.urls')),
     ]
+
+if settings.FEATURES.get('IS_MY_CUSTOM_TAB_ENABLED'):
+   urlpatterns += (
+       url(
+           r'^courses/{}/course_analytics/'.format(
+               settings.COURSE_ID_PATTERN,
+           ),
+           include('lms.djangoapps.course_analytics.urls'),
+           name='new_tab_endpoints',
+       ),
+   )
