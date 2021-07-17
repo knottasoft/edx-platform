@@ -2,7 +2,7 @@
 <%! from django.utils.translation import ugettext as _ %>
 <%namespace name='static' file='/static_content.html'/>
 <%inherit file="/main.html" />
-<%block name="bodyclass">view-new_tab_type is-in-course course</%block>
+<%block name="bodyclass">view-course_analytics is-in-course course</%block>
 <%block name="pagetitle">${_("PAGE NAME")}</%block>
 <%block name="headextra">
 <%static:css group='style-course'/>
@@ -19,7 +19,7 @@
                   height="400"
                   seamless
                   frameBorder="0"
-                  src="http://superset.knotta.ru/login?token=a&cource=cource-v1edXDemoXDemo-Cource"
+                  src="http://superset.knotta.ru/login?token=a&dashboard=cource-v1edXDemoXDemo-Cource"
                 ></iframe>
             </section>
         </main>

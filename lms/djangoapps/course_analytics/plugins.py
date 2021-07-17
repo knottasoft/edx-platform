@@ -7,7 +7,7 @@ class CourseAnalyticsTab(CourseTab):
     """
     The representation of the course teams view type.
     """
-    type = "new_tab_type"
+    type = "course_analytics"
     name = "new_tab_name"
     title = ugettext_noop("My tab's name for LMS")
     view_name = "django_logic_view"
