@@ -1015,6 +1015,6 @@ if settings.FEATURES.get('IS_MY_CUSTOM_TAB_ENABLED'):
                settings.COURSE_ID_PATTERN,
            ),
            include('lms.djangoapps.course_analytics.urls'),
-           name='new_tab_endpoints',
+           name='course_analytics_tab_endpoints',
        ),
    )

@@ -3132,6 +3132,9 @@ INSTALLED_APPS = [
 
     # Agreements
     'openedx.core.djangoapps.agreements'
+
+    # For Superset analytics Course Tab
+    'course_analytics'
 ]
 
 ######################### CSRF #########################################
