@@ -141,6 +141,8 @@ from ..module_render import get_module, get_module_by_usage_id, get_module_for_d
 from ..tabs import _get_dynamic_tabs
 from ..toggles import COURSEWARE_OPTIMIZED_RENDER_XBLOCK
 
+from lms.djangoapps.courseware.copp.service import CoppService
+
 log = logging.getLogger("edx.courseware")
 
 
@@ -972,6 +974,15 @@ def course_about(request, course_id):
         can_enroll = bool(request.user.has_perm(ENROLL_IN_COURSE, course))
         invitation_only = is_courses_default_invite_only_enabled() or course.invitation_only
         is_course_full = CourseEnrollment.objects.is_course_full(course)
+        
+        is_document_required = False
+        required_doc_types = []
+        coppService = CoppService()
+        required_doc_types = coppService.getRequiredDocTypes(course_id, request.user.id)
+        log.debug(required_doc_types)
+        if len(required_doc_types) > 0:
+            is_document_required = True
+        
 
         # Register button should be disabled if one of the following is true:
         # - Student is already registered for course
@@ -1017,6 +1028,8 @@ def course_about(request, course_id):
             'course_image_urls': overview.image_urls,
             'sidebar_html_enabled': sidebar_html_enabled,
             'allow_anonymous': allow_anonymous,
+            'is_document_required': is_document_required,
+            'required_doc_types':required_doc_types,
         }
 
         return render_to_response('courseware/course_about.html', context)
