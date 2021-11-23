@@ -155,6 +155,10 @@ BLOCK_STRUCTURES_SETTINGS = dict(
 
 ############################ FEATURE CONFIGURATION #############################
 
+# Advanced componetn, example Microsoft services video integration in course
+
+ALLOW_ALL_ADVANCED_COMPONENTS: True
+
 PLATFORM_NAME = _('Your Platform Name Here')
 
 CONTACT_MAILING_ADDRESS = _('Your Contact Mailing Address Here')
