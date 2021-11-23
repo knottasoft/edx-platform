@@ -179,7 +179,7 @@ FEATURES = {
     'GITHUB_PUSH': False,
 
     # Advanced componetn, example Microsoft services video integration in course
-    'ALLOW_ALL_ADVANCED_COMPONENTS': True
+    'ALLOW_ALL_ADVANCED_COMPONENTS': True,
 
     # See annotations in lms/envs/common.py for details.
     'ENABLE_DISCUSSION_SERVICE': True,
