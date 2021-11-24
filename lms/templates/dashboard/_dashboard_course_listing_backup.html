@@ -52,7 +52,7 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
 
 <%namespace name='static' file='../static_content.html'/>
 
-<li class="list-group-item ps-0">
+<li class="course-item">
   % if display_course_modes_on_dashboard:
     <%
         course_verified_certs = enrollment_mode_display(
@@ -105,82 +105,93 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
       % endif
     </div>
       <div class="wrapper-course-details">
-          <div class="d-flex w-100 justify-content-between">
-              <h3 class="course-title" id="course-title-${enrollment.course_id}">
-                  % if show_courseware_link and not is_unfulfilled_entitlement:
-                    % if not is_course_expired:
-                      <a data-course-key="${enrollment.course_id}" href="${course_target}" class="course-target-link text-brand-main">${course_overview.display_name_with_default}</a>
-                    % else:
-                      <a class="disable-look text-brand-main" data-course-key="${enrollment.course_id}">${course_overview.display_name_with_default}</a>
-                    % endif
-                  % else:
-                    <span class="text-brand-main">${course_overview.display_name_with_default}</span>
-                  % endif
-              </h3>
-              <div class="dropdown">
-                  <div class="d-flex align-items-center justify-content-center dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i class="rounded-circle p-2 fa fa-home" style="background-color: gray; opacity: 0.5;"></i>
-                  </div>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-<!--                      % if entitlement and (can_refund_entitlement or show_email_settings):-->
-<!--                        <%include file='_dashboard_entitlement_actions.html' args='course_overview=course_overview,entitlement=entitlement,dashboard_index=dashboard_index, can_refund_entitlement=can_refund_entitlement, show_email_settings=show_email_settings'/>-->
-<!--                      % elif not entitlement:-->
-                        % if can_unenroll:
-                            <% course_refund_url = reverse('course_run_refund_status', args=[six.text_type(course_overview.id)]) %>
-                            <a id="actions-item-unenroll-${dashboard_index}" href="#unenroll-modal" class="dropdown-item" rel="leanModal"
-                                data-course-id="${course_overview.id}"
-                                data-course-number="${course_overview.number}"
-                                data-course-name="${course_overview.display_name_with_default}"
-                                data-dashboard-index="${dashboard_index}"
-                                data-course-refund-url="${course_refund_url}"
-                                data-course-is-paid-course="${is_paid_course}"
-                                data-is-course-voucher-refundable="${is_course_voucher_refundable}"
-                                data-course-cert-name-long="${cert_name_long}"
-                                data-course-enrollment-mode="${enrollment.mode}"
-                            >${_('Unenroll')}
-                            </a>
-                        % elif partner_managed_enrollment:
-                            <a class="dropdown-item" href="#" id="actions-item-enrolled-by-partner-${dashboard_index}">
-                                ${_('You are enrolled by your institution and you should reach out to your institution to drop this course.')}
-                            </a>
-                        % endif
-                        % if show_email_settings:
-                            <a href="#email-settings-modal"
-                               class="dropdown-item"
-                               rel="leanModal"
-                               data-course-id="${course_overview.id}"
-                               data-course-number="${course_overview.number}"
-                               data-dashboard-index="${dashboard_index}"
-                               data-optout="${course_overview.id in course_optouts}"
-                            >${_('Email Settings')}
-                            </a>
-                        % endif
-                  </div>
-              </div>
-          </div>
-        <ul class="list-inline mb-0">
-            <li class="list-inline-item">
-                <ul class="list-inline mb-0">
-                    <li class="list-inline-item"><img src="static/images/brand/icon-calendar.svg" /></li>
-                    <li class="list-inline-item"><p style="font-size: 14px">${_("Organisation")}: ${course_overview.display_org_with_default}</p></li>
-                </ul>
-            </li>
-            <li class="list-inline-item">
-                <ul class="list-inline  mb-0">
-                    <li class="list-inline-item"><img src="static/images/brand/icon-time.svg" /></li>
-                    <li class="list-inline-item"><p style="font-size: 14px">${_("Effort")}: ${course_overview.effort}</p></li>
-                </ul>
-            </li>
-            <li class="list-inline-item">
-                <ul class="list-inline  mb-0">
-                    <li class="list-inline-item"><img src="static/images/brand/icon-course.svg" /></li>
-                    <li class="list-inline-item"><p style="font-size: 14px">${_("Pacing")}: ${course_overview.pacing}</p></li>
-                </ul>
-            </li>
-        </ul>
+        <h3 class="course-title" id="course-title-${enrollment.course_id}">
+          % if show_courseware_link and not is_unfulfilled_entitlement:
+            % if not is_course_expired:
+              <a data-course-key="${enrollment.course_id}" href="${course_target}" class="course-target-link">${course_overview.display_name_with_default}</a>
+            % else:
+              <a class="disable-look" data-course-key="${enrollment.course_id}">${course_overview.display_name_with_default}</a>
+            % endif
+          % else:
+            <span>${course_overview.display_name_with_default}</span>
+          % endif
+        </h3>
         <div class="wrapper-course-info-actions">
           <div class="wrapper-course-info-row">
+            <div class="course-info">
+              <span class="info-university">${course_overview.display_org_with_default} - </span>
+              <span class="info-course-id">${course_overview.display_number_with_default}</span>
+              <%
+                enrollment_date = course_overview.self_paced and enrollment and enrollment.created
+                if course_overview.start_date_is_still_default:
+                    container_string = _("Coming Soon")
+                    course_date = None
+                else:
+                    format = 'shortDate'
+                    dashboard_start_display = course_overview.dashboard_start_display
+                    if course_overview.has_ended():
+                        container_string = _("Ended - {date}")
+                        course_date = course_overview.end
+                    elif course_overview.has_started():
+                        container_string = _("Started - {date}")
+                        if enrollment_date and isinstance(dashboard_start_display, datetime.datetime):
+                          course_date = max(enrollment_date, dashboard_start_display)
+                        else:
+                          course_date = enrollment_date or dashboard_start_display
+                    elif course_overview.starts_within(days=5):
+                        container_string = _("Starts - {date}")
+                        course_date = dashboard_start_display
+                        format = 'defaultFormat'
+                    else: ## hasn't started yet
+                        container_string = _("Starts - {date}")
+                        course_date = dashboard_start_display
+                    endif
+                endif
+              %>
 
+                <span class="info-date-block-container">
+                    % if not is_unfulfilled_entitlement and is_course_expired:
+                      <span class="info-date-block" data-course-key="${enrollment.course_id}">
+                        ${show_courseware_link.user_message}
+                        <span class="sr">
+                          &nbsp;${_('for {course_display_name}').format(course_display_name=course_overview.display_name_with_default)}
+                        </span>
+                      </span>
+                    % elif is_unfulfilled_entitlement:
+                        <span class="info-date-block" aria-live="polite">
+                            <span class="icon fa fa-warning" aria-hidden="true"></span>
+                            % if not entitlement_expired_at:
+                                % if entitlement_expiration_date:
+                                    ${_('You must select a session by {expiration_date} to access the course.').format(expiration_date=entitlement_expiration_date)}
+                                % else:
+                                    ${_('You must select a session to access the course.')}
+                                % endif
+                            % endif
+                        </span>
+                    % else:
+                        % if isinstance(course_date, six.string_types):
+                            <span class="info-date-block">${container_string.format(date=course_date)}</span>
+                        % elif course_date is not None:
+                            <span class="info-date-block localized-datetime" data-language="${user_language}" data-timezone="${user_timezone}" data-datetime="${course_date.strftime('%Y-%m-%dT%H:%M:%S%z')}" data-format=${format} data-string="${container_string}"></span>
+                        % endif
+                    % endif
+                    % if entitlement:
+                        % if not entitlement_expired_at:
+                            <button class="change-session btn-link ${'hidden' if is_unfulfilled_entitlement else ''}">${_('Change or Leave Session')}</button>
+                        % endif
+                    % endif
+                </span>
+                % if entitlement and not is_unfulfilled_entitlement and entitlement_expiration_date:
+                    <div class="info-expires-at">
+                            <span class="msg-icon fa fa-warning" aria-hidden="true"></span>
+                            % if entitlement_expired_at:
+                                ${_('You can no longer change sessions.')}
+                            % else:
+                                ${_('You can change sessions until {entitlement_expiration_date}.').format(entitlement_expiration_date=entitlement_expiration_date)}
+                            % endif
+                    </div>
+                % endif
+            </div>
             <div class="wrapper-course-actions">
               <div class="course-actions">
                 % if show_courseware_link or course_overview.has_social_sharing_url() or course_overview.has_marketing_url():
@@ -241,23 +252,67 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
                 ## We should only show the gear dropdown if the user is able to refund/unenroll from their entitlement
                 ## and/or if they have selected a course run and email_settings are enabled
                 ## as these are the only actions currently available
-
+                % if entitlement and (can_refund_entitlement or show_email_settings):
+                    <%include file='_dashboard_entitlement_actions.html' args='course_overview=course_overview,entitlement=entitlement,dashboard_index=dashboard_index, can_refund_entitlement=can_refund_entitlement, show_email_settings=show_email_settings'/>
+                % elif not entitlement:
+                    <div class="wrapper-action-more" data-course-key="${enrollment.course_id}">
+                      <button type="button" class="action action-more" id="actions-dropdown-link-${dashboard_index}" aria-haspopup="true" aria-expanded="false" aria-controls="actions-dropdown-${dashboard_index}" data-course-number="${course_overview.number}" data-course-name="${course_overview.display_name_with_default}" data-dashboard-index="${dashboard_index}">
+                        <span class="sr">${_('Course options for')}</span>
+                        <span class="sr">&nbsp;
+                          ${course_overview.display_name_with_default}
+                        </span>
+                        <span class="fa fa-cog" aria-hidden="true"></span>
+                      </button>
+                      <div class="actions-dropdown" id="actions-dropdown-${dashboard_index}" tabindex="-1">
+                        <ul class="actions-dropdown-list" id="actions-dropdown-list-${dashboard_index}" aria-label="${_('Available Actions')}" role="menu">
+                          % if can_unenroll:
+                            <li class="actions-item" id="actions-item-unenroll-${dashboard_index}" role="menuitem">
+                              <% course_refund_url = reverse('course_run_refund_status', args=[six.text_type(course_overview.id)]) %>
+                                  <a href="#unenroll-modal" class="action action-unenroll" rel="leanModal"
+                                    data-course-id="${course_overview.id}"
+                                    data-course-number="${course_overview.number}"
+                                    data-course-name="${course_overview.display_name_with_default}"
+                                    data-dashboard-index="${dashboard_index}"
+                                    data-course-refund-url="${course_refund_url}"
+                                    data-course-is-paid-course="${is_paid_course}"
+                                    data-is-course-voucher-refundable="${is_course_voucher_refundable}"
+                                    data-course-cert-name-long="${cert_name_long}"
+                                    data-course-enrollment-mode="${enrollment.mode}">
+                                    ${_('Unenroll')}
+                                  </a>
+                            </li>
+                        % elif partner_managed_enrollment:
+                          <li class="actions-item" id="actions-item-enrolled-by-partner-${dashboard_index}" role="menuitem">
+                            <a class="action action-message action-unenroll-managed-enrollment">
+                              ${_('You are enrolled by your institution and you should reach out to your institution to drop this course.')}
+                            </a>
+                          </li>
+                        % endif
+                          <li class="actions-item" id="actions-item-email-settings-${dashboard_index}" role="menuitem">
+                            % if show_email_settings:
+                                <a href="#email-settings-modal" class="action action-email-settings" rel="leanModal" data-course-id="${course_overview.id}" data-course-number="${course_overview.number}" data-dashboard-index="${dashboard_index}" data-optout="${course_overview.id in course_optouts}">${_('Email Settings')}</a>
+                            % endif
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                % endif
               </div>
             </div>
           </div>
 
-<!--          <div class="continue-button">-->
-<!--              % if (show_courseware_link or is_unfulfilled_entitlement) and not is_course_expired:-->
-<!--                % if course_overview.has_ended():-->
-<!--                  % if not is_unfulfilled_entitlement:-->
-<!--                    <a href="${course_target}" class="enter-course archived course-target-link" data-course-key="${enrollment.course_id}">${_('View Archived Course')}<span class="sr">&nbsp;${course_overview.display_name_with_default}</span></a>-->
-<!--                  % endif-->
+          <div class="continue-button">
+              % if (show_courseware_link or is_unfulfilled_entitlement) and not is_course_expired:
+                % if course_overview.has_ended():
+                  % if not is_unfulfilled_entitlement:
+                    <a href="${course_target}" class="enter-course archived course-target-link" data-course-key="${enrollment.course_id}">${_('View Archived Course')}<span class="sr">&nbsp;${course_overview.display_name_with_default}</span></a>
+                  % endif
 
-<!--                % else:-->
-<!--                  <%include file="_dashboard_course_resume.html" args="resume_button_url=resume_button_url, course_overview=course_overview, enrollment=enrollment, is_unfulfilled_entitlement=is_unfulfilled_entitlement, course_target=course_target, related_programs=related_programs"/>-->
-<!--                % endif-->
-<!--              % endif-->
-<!--          </div>-->
+                % else:
+                  <%include file="_dashboard_course_resume.html" args="resume_button_url=resume_button_url, course_overview=course_overview, enrollment=enrollment, is_unfulfilled_entitlement=is_unfulfilled_entitlement, course_target=course_target, related_programs=related_programs"/>
+                % endif
+              % endif
+          </div>
         </div>
       </div>
   </section>

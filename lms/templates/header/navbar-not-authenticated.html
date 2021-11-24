@@ -15,60 +15,73 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
 %>
 
 <%
-  mktg_site_enabled = static.get_value('ENABLE_MKTG_SITE', settings.FEATURES.get('ENABLE_MKTG_SITE', False))
+  # mktg_site_enabled = static.get_value('ENABLE_MKTG_SITE', settings.FEATURES.get('ENABLE_MKTG_SITE', True))
+  mktg_site_enabled = True
   courses_are_browsable = settings.FEATURES.get('COURSES_ARE_BROWSABLE')
   allows_login = not settings.FEATURES['DISABLE_LOGIN_BUTTON'] and not combined_login_and_register
   can_discover_courses = settings.FEATURES.get('ENABLE_COURSE_DISCOVERY')
   allow_public_account_creation = static.get_value('ALLOW_PUBLIC_ACCOUNT_CREATION', settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION'))
   should_redirect_to_authn_mfe = should_redirect_to_authn_microfrontend()
 %>
-<nav class="nav-links" aria-label=${_("Supplemental Links")}>
-  <div class="main">
-  % if mktg_site_enabled:
-    <div class="mobile-nav-item hidden-mobile nav-item">
-      <a href="${marketing_link('HOW_IT_WORKS')}">${_("How it Works")}</a>
+<style>
+
+</style>
+<nav class="navbar navbar-expand-lg navbar-light bg-brand" aria-label="${_('Supplemental Links')}">
+    <div class="container-fluid">
+        <a class="navbar-brand ps-4" href="#">
+            <img class="logo" src="https://edx-cdn.org/v3/default/logo-trademark.svg" alt={logoAltText} />
+        </a>
+        <div class="collapse navbar-collapse d-flex">
+            <ul class="nav navbar-nav mb-2 mb-lg-0 w-100 align-items-center">
+                % if settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
+                    <li class="nav-item flex-grow-1 px-4">
+                        <form method="get" action="/courses">
+                            <div class="input-group d-flex align-items-center pe-4">
+                                <input class="form-control border-end-0 border rounded-pill search-input px-4"
+                                       name="search_query"
+                                       type="text"
+                                       placeholder="${_('Search for a course')}"
+                                       id="search-input"
+                                />
+                                    <span class="input-group-append">
+                                        <a class="btn ms-n5 py-1" type="submit">
+                                            <i class="fa fa-search fa-lg" style="color: #553C8B;"></i>
+                                        </a>
+                                    </span>
+                            </div>
+                        </form>
+                    </li>
+                % endif
+                % if mktg_site_enabled:
+                    <li class="nav-item px-4">
+                        <a class="text-white" href="${marketing_link('COURSES')}">${_("Courses")}</a>
+                    </li>
+                    <li class="nav-item px-4">
+                        <a href="${marketing_link('HOW_IT_WORKS')}">${_("About Us")}</a>
+                    </li>
+                    % if courses_are_browsable:
+                        <li class="nav-item px-4">
+                            <a href="${marketing_link('HOW_IT_WORKS')}">${_("Contacts")}</a>
+                        </li>
+                    % endif
+                    <li class="nav-item px-4">
+                        <a href="${marketing_link('SCHOOLS')}">${_("Help")}</a>
+                    </li>
+                % endif
+            </ul>
+        </div>
+        <ul class="nav navbar-nav me-4 mb-2 mb-lg-0 ms-4">
+            % if allows_login:
+                % if should_redirect_to_authn_mfe:
+                    <li class="nav nav-item">
+                        <a class="btn btn-brand-white" href="${settings.AUTHN_MICROFRONTEND_URL}/login${login_query()}">${_("Sign in")}</a>
+                    </li>
+                % else:
+                    <li class="nav nav-item">
+                        <a class="btn btn-brand-white" href="/login${login_query()}">${_("Sign in")}</a>
+                    </li>
+                % endif
+            % endif
+        </ul>
     </div>
-    % if courses_are_browsable:
-      <div class="mobile-nav-item hidden-mobile nav-item">
-        <a href="${marketing_link('COURSES')}">${_("Courses")}</a>
-      </div>
-    % endif
-    <div class="mobile-nav-item hidden-mobile nav-item">
-      <a href="${marketing_link('SCHOOLS')}">${_("Schools")}</a>
-    </div>
-  % endif
-  % if allows_login:
-    % if can_discover_courses:
-      <div class="mobile-nav-item hidden-mobile nav-item">
-        <a href="/courses">${_('Explore courses')}</a>
-      </div>
-    %endif
-  % endif
-  </div>
-  <div class="secondary">
-    <div>
-      % if allows_login:
-        % if allow_public_account_creation:
-          % if should_redirect_to_authn_mfe:
-            <div class="mobile-nav-item hidden-mobile nav-item">
-                <a class="register-btn btn" href="${settings.AUTHN_MICROFRONTEND_URL}/register${login_query()}">${_("Register")}</a>
-            </div>
-          % else:
-            <div class="mobile-nav-item hidden-mobile nav-item">
-                <a class="register-btn btn" href="/register${login_query()}">${_("Register")}</a>
-            </div>
-          % endif
-        % endif
-        % if should_redirect_to_authn_mfe:
-          <div class="mobile-nav-item hidden-mobile nav-item">
-              <a class="sign-in-btn btn" href="${settings.AUTHN_MICROFRONTEND_URL}/login${login_query()}">${_("Sign in")}</a>
-          </div>
-        % else:
-          <div class="mobile-nav-item hidden-mobile nav-item">
-              <a class="sign-in-btn btn" href="/login${login_query()}">${_("Sign in")}</a>
-          </div>
-        % endif
-      % endif
-    </div>
-  </div>
 </nav>

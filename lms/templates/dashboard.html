@@ -154,7 +154,7 @@ from common.djangoapps.student.models import CourseEnrollment
           % endif
 
           % if len(course_entitlements + course_enrollments) > 0:
-            <ul class="listing-courses">
+            <ul class="list-group list-group-flush">
             <%
                 share_settings = configuration_helpers.get_value(
                     'SOCIAL_SHARING_SETTINGS',
