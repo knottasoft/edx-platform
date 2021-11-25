@@ -46,14 +46,13 @@ from six import text_type
 
 <div class="col">
     <div class="card rounded-brand-card mb-3" id="${course.id}" role="region" aria-label="${course.display_name_with_default}">
-        <!-- TODO: Изменить заглушку для прод -->
         <%
             if course.course_image_url is None:
-                course_image_url = "/asset-v1:edX+DemoX+Demo_Course+type@asset+block@images_course_image.jpg"
+                course_image_url = "/static/images/brand/course_card_image.png"
             else:
-                course_image_url = "/asset-v1:edX+DemoX+Demo_Course+type@asset+block@course_1.png"
+                course_image_url = course.course_image_url
         %>
-        <img class="card-img-top rounded-brand-top" src="${course_image_url}" alt="${course.display_name_with_default} ${course.display_number_with_default}" />
+        <img class="card-img-top rounded-brand-top" src="${course_image_url}" alt="${course.display_name_with_default} " />
         <div class="card-body">
             <p class="card-title brand-primary my-3" style="font-size: 16px; font-weight: bold">${course.display_name_with_default}</p>
             <ul class="list-inline mb-0">

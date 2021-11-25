@@ -15,8 +15,8 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
 %>
 
 <%
-  # mktg_site_enabled = static.get_value('ENABLE_MKTG_SITE', settings.FEATURES.get('ENABLE_MKTG_SITE', True))
-  mktg_site_enabled = True
+  mktg_site_enabled = static.get_value('ENABLE_MKTG_SITE', settings.FEATURES.get('ENABLE_MKTG_SITE', True))
+  #mktg_site_enabled = True
   courses_are_browsable = settings.FEATURES.get('COURSES_ARE_BROWSABLE')
   allows_login = not settings.FEATURES['DISABLE_LOGIN_BUTTON'] and not combined_login_and_register
   can_discover_courses = settings.FEATURES.get('ENABLE_COURSE_DISCOVERY')
