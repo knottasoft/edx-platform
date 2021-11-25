@@ -52,22 +52,22 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
                         </form>
                     </li>
                 % endif
-                % if mktg_site_enabled:
+
+                <li class="nav-item px-4">
+                    <a class="text-white" href="${marketing_link('COURSES')}">${_("Courses")}</a>
+                </li>
+                <li class="nav-item px-4">
+                    <a href="${marketing_link('HOW_IT_WORKS')}">${_("About Us")}</a>
+                </li>
+
                     <li class="nav-item px-4">
-                        <a class="text-white" href="${marketing_link('COURSES')}">${_("Courses")}</a>
+                        <a href="${marketing_link('HOW_IT_WORKS')}">${_("Contacts")}</a>
                     </li>
-                    <li class="nav-item px-4">
-                        <a href="${marketing_link('HOW_IT_WORKS')}">${_("About Us")}</a>
-                    </li>
-                    % if courses_are_browsable:
-                        <li class="nav-item px-4">
-                            <a href="${marketing_link('HOW_IT_WORKS')}">${_("Contacts")}</a>
-                        </li>
-                    % endif
-                    <li class="nav-item px-4">
-                        <a href="${marketing_link('SCHOOLS')}">${_("Help")}</a>
-                    </li>
-                % endif
+
+                <li class="nav-item px-4">
+                    <a href="${marketing_link('SCHOOLS')}">${_("Help")}</a>
+                </li>
+
             </ul>
         </div>
         <ul class="nav navbar-nav me-4 mb-2 mb-lg-0 ms-4">
