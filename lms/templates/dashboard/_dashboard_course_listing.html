@@ -52,6 +52,15 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
 
 <%namespace name='static' file='../static_content.html'/>
 
+<style>
+    .dropdown-toggle.remove-arrow::before{
+        content: None;
+    }
+    .dropdown-toggle.remove-arrow::after{
+        content: None;
+    }
+</style>
+
 <li class="list-group-item ps-0">
   % if display_course_modes_on_dashboard:
     <%
@@ -117,9 +126,9 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
                     <span class="text-brand-main">${course_overview.display_name_with_default}</span>
                   % endif
               </h3>
-              <div class="dropdown">
-                  <div class="d-flex align-items-center justify-content-center dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i class="rounded-circle p-2 fa fa-home" style="background-color: gray; opacity: 0.5;"></i>
+              <div class="dropdown pt-2">
+                  <div class="d-flex align-items-center justify-content-center dropdown-toggle remove-arrow" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <img class="rounded-circle p-2" src="static/images/brand/icon-more.svg" style="background-color: #F6F7FA;" />
                   </div>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
 <!--                      % if entitlement and (can_refund_entitlement or show_email_settings):-->

@@ -10,15 +10,21 @@
 <% icp_license_info = getattr(settings, 'ICP_LICENSE_INFO', {})%>
 <%namespace name='static' file='static_content.html'/>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-brand py-0">
-    <div class="container-fluid me-4 pe-4">
-        <a class="navbar-brand ps-4" href="#">
-            <img class="logo" src="https://edx-cdn.org/v3/default/logo-trademark.svg" alt={logoAltText} />
-        </a>
-        <a href="${marketing_link('COURSES')}">${_("Courses")}</a>
-        <a href="${marketing_link('HOW_IT_WORKS')}">${_("About Us")}</a>
-        <a href="${marketing_link('HOW_IT_WORKS')}">${_("Contacts")}</a>
-        <a href="${marketing_link('SCHOOLS')}">${_("Help")}</a>
+<nav id="footer" class="navbar navbar-expand-lg navbar-light bg-brand pl-4 pr-0 py-0">
+    <a class="navbar-brand ps-4" href="#">
+            <img class="logo" width="50px" height="50px" src="https://copp26.ru/upload/openedx/logo_small_White.svg" alt={logoAltText} />
+    </a>
+    <div class="container-fluid mr-4 pr-4">
+        <a class="text-white" href="${marketing_link('COURSES')}">${_("Courses")}</a>
+        <a class="text-white" href="${marketing_link('HOW_IT_WORKS')}">${_("About Us")}</a>
+        <a class="text-white" href="${marketing_link('HOW_IT_WORKS')}">${_("Contacts")}</a>
+        <a class="text-white" href="${marketing_link('SCHOOLS')}">${_("Help")}</a>
     </div>
-    <img src='../static/images/brand/footer_background.png' class="img-fluid h-100" style="width: 40%; height: 100%;"/>
+    <img src='../static/images/brand/footer_background.png' class="img-fluid h-100" style="width: 400px;"/>
 </nav>
+
+<script>
+    if ($(document).height() <= $(window).height()) {
+        $("#footer").addClass("fixed-bottom");
+    }
+</script>

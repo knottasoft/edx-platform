@@ -29,7 +29,7 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
 <nav class="navbar navbar-expand-lg navbar-light bg-brand" aria-label="${_('Supplemental Links')}">
     <div class="container-fluid">
         <a class="navbar-brand ps-4" href="#">
-            <img class="logo" src="https://edx-cdn.org/v3/default/logo-trademark.svg" alt={logoAltText} />
+            <img class="logo" width="50px" height="50px" src="https://copp26.ru/upload/openedx/logo_small_White.svg" alt={logoAltText} />
         </a>
         <div class="collapse navbar-collapse d-flex">
             <ul class="nav navbar-nav mb-2 mb-lg-0 w-100 align-items-center">
@@ -57,15 +57,15 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
                     <a class="text-white" href="${marketing_link('COURSES')}">${_("Courses")}</a>
                 </li>
                 <li class="nav-item px-4">
-                    <a href="${marketing_link('HOW_IT_WORKS')}">${_("About Us")}</a>
+                    <a class="text-white" href="${marketing_link('ABOUT')}">${_("About Us")}</a>
                 </li>
 
                     <li class="nav-item px-4">
-                        <a href="${marketing_link('HOW_IT_WORKS')}">${_("Contacts")}</a>
+                        <a class="text-white" href="${marketing_link('CONTACT')}">${_("Contacts")}</a>
                     </li>
 
                 <li class="nav-item px-4">
-                    <a href="${marketing_link('SCHOOLS')}">${_("Help")}</a>
+                    <a class="text-white" href="${marketing_link('FAQ')}">${_("Help")}</a>
                 </li>
 
             </ul>
