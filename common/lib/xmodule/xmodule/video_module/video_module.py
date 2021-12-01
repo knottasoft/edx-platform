@@ -108,6 +108,7 @@ EXPORT_IMPORT_STATIC_DIR = 'static'
 
 
 @XBlock.wants('settings', 'completion', 'i18n', 'request_cache')
+@XBlock.needs('mako')
 class VideoBlock(
         VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
         TabsEditingMixin, EmptyDataRawMixin, XmlMixin, EditingMixin,
@@ -218,7 +219,7 @@ class VideoBlock(
         If only either youtube or hls is present then play whichever is present
         """
         yt_present = bool(youtube_streams.strip()) if youtube_streams else False
-        hls_present = any(source for source in html5_sources if source.strip().endswith('.m3u8'))
+        hls_present = any(source for source in html5_sources)
 
         if yt_present and hls_present:
             return self.youtube_deprecated
@@ -245,7 +246,7 @@ class VideoBlock(
         Return the studio view.
         """
         fragment = Fragment(
-            self.system.render_template(self.mako_template, self.get_context())
+            self.runtime.service(self, 'mako').render_template(self.mako_template, self.get_context())
         )
         add_webpack_to_fragment(fragment, 'VideoBlockStudio')
         shim_xmodule_js(fragment, 'TabsEditingDescriptor')
@@ -468,7 +469,7 @@ class VideoBlock(
             'transcript_download_formats_list': self.fields['transcript_download_format'].values,  # lint-amnesty, pylint: disable=unsubscriptable-object
             'license': getattr(self, "license", None),
         }
-        return self.system.render_template('video.html', context)
+        return self.runtime.service(self, 'mako').render_template('video.html', context)
 
     def validate(self):
         """

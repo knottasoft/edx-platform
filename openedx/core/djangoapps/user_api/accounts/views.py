@@ -20,8 +20,8 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, logout
 from django.contrib.sites.models import Site
 from django.core.cache import cache
-from django.db import transaction
-from django.utils.translation import ugettext as _
+from django.db import models, transaction
+from django.utils.translation import gettext as _
 from edx_ace import ace
 from edx_ace.recipient import Recipient
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
@@ -55,6 +55,7 @@ from common.djangoapps.student.models import (  # lint-amnesty, pylint: disable=
     get_retired_username_by_username,
     is_username_retired
 )
+from common.djangoapps.student.models_api import do_name_change_request
 from openedx.core.djangoapps.ace_common.template_context import get_base_template_context
 from openedx.core.djangoapps.api_admin.models import ApiAccessRequest
 from openedx.core.djangoapps.course_groups.models import UnregisteredLearnerCohortAssignments
@@ -79,6 +80,7 @@ from ..models import (
 from .api import get_account_settings, update_account_settings
 from .permissions import CanDeactivateUser, CanReplaceUsername, CanRetireUser
 from .serializers import (
+    PendingNameChangeSerializer,
     UserRetirementPartnerReportSerializer,
     UserRetirementStatusSerializer,
     UserSearchEmailSerializer
@@ -245,6 +247,9 @@ class AccountViewSet(ViewSet):
 
             * phone_number: The phone number for the user. String of numbers with
               an optional `+` sign at the start.
+
+            * pending_name_change: If the user has an active name change request, returns the
+              requested name.
 
             For all text fields, plain text instead of HTML is supported. The
             data is stored exactly as specified. Clients must HTML escape
@@ -413,6 +418,42 @@ class AccountViewSet(ViewSet):
         return Response(account_settings)
 
 
+class NameChangeView(APIView):
+    """
+    Request a profile name change. This creates a PendingNameChange to be verified later,
+    rather than updating the user's profile name directly.
+    """
+    authentication_classes = (JwtAuthentication, SessionAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        """
+        POST /api/user/v1/accounts/name_change/
+
+        Example request:
+            {
+                "name": "Jon Doe"
+            }
+        """
+        user = request.user
+        new_name = request.data.get('name', None)
+        rationale = f'Name change requested through account API by {user.username}'
+
+        serializer = PendingNameChangeSerializer(data={'new_name': new_name})
+
+        if serializer.is_valid():
+            pending_name_change = do_name_change_request(user, new_name, rationale)[0]
+            if pending_name_change:
+                return Response(status=status.HTTP_201_CREATED)
+            else:
+                return Response(
+                    {'new_name': 'The profile name given was identical to the current name.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+
+
 class AccountDeactivationView(APIView):
     """
     Account deactivation viewset. Currently only supports POST requests.
@@ -502,7 +543,7 @@ class DeactivateLogoutView(APIView):
                     ace.send(notification)
                 except Exception as exc:
                     log.exception('Error sending out deletion notification email')
-                    raise
+                    raise exc
 
                 # Log the user out.
                 logout(request)
@@ -605,7 +646,9 @@ class AccountRetirementPartnerReportView(ViewSet):
         try:
             # if the user has ever launched a managed Zoom xblock,
             # we'll notify Zoom to delete their records.
-            if user.launchlog_set.filter(managed=True).count():
+            # We use models.Value(1) to make use of the indexing on the field. MySQL does not
+            # support boolean types natively, and checking for False will cause a table scan.
+            if user.launchlog_set.filter(managed=models.Value(1)).count():
                 orgs.add('zoom')
         except AttributeError:
             # Zoom XBlock not installed

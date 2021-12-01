@@ -11,8 +11,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imported-auth-user
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
+from edx_django_utils.plugins import pluggable_override
 from edx_proctoring.api import (
     does_backend_support_onboarding,
     get_exam_by_content_id,
@@ -20,7 +21,7 @@ from edx_proctoring.api import (
 )
 from edx_proctoring.exceptions import ProctoredExamNotFoundException
 from help_tokens.core import HelpUrlExpert
-from lti_consumer.models import CourseEditLTIFieldsEnabledFlag
+from lti_consumer.models import CourseAllowPIISharingInLTIFlag
 from opaque_keys.edx.keys import CourseKey
 from opaque_keys.edx.locator import LibraryUsageLocator
 from pytz import UTC
@@ -31,6 +32,7 @@ from xblock.fields import Scope
 from cms.djangoapps.contentstore.config.waffle import SHOW_REVIEW_RULES_FLAG
 from cms.djangoapps.models.settings.course_grading import CourseGradingModel
 from cms.lib.xblock.authoring_mixin import VISIBILITY_VIEW
+from common.djangoapps.edxmako.services import MakoService
 from common.djangoapps.edxmako.shortcuts import render_to_string
 from common.djangoapps.static_replace import replace_static_urls
 from common.djangoapps.student.auth import has_studio_read_access, has_studio_write_access
@@ -114,7 +116,7 @@ def _is_library_component_limit_reached(usage_key):
 @require_http_methods(("DELETE", "GET", "PUT", "POST", "PATCH"))
 @login_required
 @expect_json
-def xblock_handler(request, usage_key_string):
+def xblock_handler(request, usage_key_string=None):
     """
     The restful handler for xblock requests.
 
@@ -308,10 +310,12 @@ class StudioEditModuleRuntime:
                 return DjangoXBlockUserService(self._user)
             if service_name == "studio_user_permissions":
                 return StudioPermissionsService(self._user)
+            if service_name == "mako":
+                return MakoService()
             if service_name == "settings":
                 return SettingsService()
             if service_name == "lti-configuration":
-                return ConfigurationService(CourseEditLTIFieldsEnabledFlag)
+                return ConfigurationService(CourseAllowPIISharingInLTIFlag)
             if service_name == "teams_configuration":
                 return TeamsConfigurationService()
             if service_name == "library_tools":
@@ -1116,6 +1120,7 @@ def _get_gating_info(course, xblock):
     return info
 
 
+@pluggable_override('OVERRIDE_CREATE_XBLOCK_INFO')
 def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=False, include_child_info=False,  # lint-amnesty, pylint: disable=too-many-statements
                        course_outline=False, include_children_predicate=NEVER, parent_xblock=None, graders=None,
                        user=None, course=None, is_concise=False):
@@ -1134,6 +1139,13 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
 
     In addition, an optional include_children_predicate argument can be provided to define whether or
     not a particular xblock should have its children included.
+
+    You can customize the behavior of this function using the `OVERRIDE_CREATE_XBLOCK_INFO` pluggable override point.
+    For example:
+    >>> def create_xblock_info(default_fn, xblock, *args, **kwargs):
+    ...     xblock_info = default_fn(xblock, *args, **kwargs)
+    ...     xblock_info['icon'] = xblock.icon_override
+    ...     return xblock_info
     """
     is_library_block = isinstance(xblock.location, LibraryUsageLocator)
     is_xblock_unit = is_unit(xblock, parent_xblock)
@@ -1230,6 +1242,7 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
             'graded': xblock.graded,
             'due_date': get_default_time_display(xblock.due),
             'due': xblock.fields['due'].to_json(xblock.due),
+            'relative_weeks_due': xblock.relative_weeks_due,
             'format': xblock.format,
             'course_graders': [grader.get('type') for grader in graders],
             'has_changes': has_changes,
@@ -1299,7 +1312,9 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
 
         # Update with gating info
         xblock_info.update(_get_gating_info(course, xblock))
-
+        if is_xblock_unit:
+            # if xblock is a Unit we add the discussion_enabled option
+            xblock_info['discussion_enabled'] = xblock.discussion_enabled
         if xblock.category == 'sequential':
             # Entrance exam subsection should be hidden. in_entrance_exam is
             # inherited metadata, all children will have it.

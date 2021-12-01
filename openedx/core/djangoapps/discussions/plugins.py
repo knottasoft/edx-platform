@@ -3,8 +3,9 @@ Course app configuration for discussions.
 """
 from typing import Dict, Optional
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils.translation import ugettext_noop as _
+from django.utils.translation import gettext_noop as _
 from opaque_keys.edx.keys import CourseKey
 
 from openedx.core.djangoapps.course_apps.plugins import CourseApp
@@ -20,7 +21,10 @@ class DiscussionCourseApp(CourseApp):
 
     app_id = "discussion"
     name = _("Discussion")
-    description = _("Encourage participation and engagement in your course with discussion forums.")
+    description = _("Encourage participation and engagement in your course with discussions.")
+    documentation_links = {
+        "learn_more_configuration": settings.DISCUSSIONS_HELP_URL,
+    }
 
     @classmethod
     def is_available(cls, course_key: CourseKey) -> bool:

@@ -6,26 +6,33 @@ Tests for Discussion API views
 import json
 from datetime import datetime
 from unittest import mock
+from urllib.parse import urlparse
 
 import ddt
 import httpretty
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
 from opaque_keys.edx.keys import CourseKey
 from pytz import UTC
 from rest_framework.parsers import JSONParser
 from rest_framework.test import APIClient, APITestCase
-from six.moves.urllib.parse import urlparse
+from rest_framework import status
+from xmodule.modulestore import ModuleStoreEnum
+from xmodule.modulestore.django import modulestore
+from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
+from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory, check_mongo_calls
 
 from common.djangoapps.course_modes.models import CourseMode
 from common.djangoapps.course_modes.tests.factories import CourseModeFactory
 from common.djangoapps.student.models import get_retired_username_by_username
+from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRole, GlobalStaff
 from common.djangoapps.student.tests.factories import CourseEnrollmentFactory, SuperuserFactory, UserFactory
 from common.djangoapps.util.testing import PatchMediaTypeMixin, UrlResetMixin
 from common.test.utils import disable_signal
 from lms.djangoapps.discussion.django_comment_client.tests.utils import (
     ForumsEnableMixin,
     config_course_discussions,
-    topic_name_to_id
+    topic_name_to_id,
 )
 from lms.djangoapps.discussion.rest_api import api
 from lms.djangoapps.discussion.rest_api.tests.utils import (
@@ -33,7 +40,7 @@ from lms.djangoapps.discussion.rest_api.tests.utils import (
     ProfileImageTestMixin,
     make_minimal_cs_comment,
     make_minimal_cs_thread,
-    make_paginated_api_response
+    make_paginated_api_response,
 )
 from openedx.core.djangoapps.course_groups.tests.helpers import config_course_cohorts
 from openedx.core.djangoapps.django_comment_common.models import CourseDiscussionSettings, Role
@@ -42,10 +49,6 @@ from openedx.core.djangoapps.oauth_dispatch.jwt import create_jwt_for_user
 from openedx.core.djangoapps.oauth_dispatch.tests.factories import AccessTokenFactory, ApplicationFactory
 from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_image_storage
 from openedx.core.djangoapps.user_api.models import RetirementState, UserRetirementStatus
-from xmodule.modulestore import ModuleStoreEnum
-from xmodule.modulestore.django import modulestore
-from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
-from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory, check_mongo_calls
 
 
 class DiscussionAPIViewTestMixin(ForumsEnableMixin, CommentsServiceMockMixin, UrlResetMixin):
@@ -134,6 +137,153 @@ class DiscussionAPIViewTestMixin(ForumsEnableMixin, CommentsServiceMockMixin, Ur
 
 
 @mock.patch.dict("django.conf.settings.FEATURES", {"ENABLE_DISCUSSION_SERVICE": True})
+class UploadFileViewTest(ForumsEnableMixin, CommentsServiceMockMixin, UrlResetMixin, ModuleStoreTestCase):
+    """
+    Tests for UploadFileView.
+    """
+
+    @mock.patch.dict("django.conf.settings.FEATURES", {"ENABLE_DISCUSSION_SERVICE": True})
+    def setUp(self):
+        super().setUp()
+        self.valid_file = {
+            "uploaded_file": SimpleUploadedFile(
+                "test.jpg",
+                b"test content",
+                content_type="image/jpeg",
+            ),
+        }
+        self.user = UserFactory.create(password="password")
+        self.course = CourseFactory.create(org='a', course='b', run='c', start=datetime.now(UTC))
+        self.url = reverse("upload_file", kwargs={"course_id": str(self.course.id)})
+
+    def user_login(self):
+        """
+        Authenticates the test client with the example user.
+        """
+        self.client.login(username=self.user.username, password="password")
+
+    def enroll_user_in_course(self):
+        """
+        Makes the example user enrolled to the course.
+        """
+        CourseEnrollmentFactory.create(user=self.user, course_id=self.course.id)
+
+    def assert_upload_success(self, response):
+        """
+        Asserts that the upload response was successful and returned the
+        expected contents.
+        """
+        assert response.status_code == status.HTTP_200_OK
+        assert response.content_type == "application/json"
+        response_data = json.loads(response.content)
+        assert "location" in response_data
+
+    def test_file_upload_by_unauthenticated_user(self):
+        """
+        Should fail if an unauthenticated user tries to upload a file.
+        """
+        response = self.client.post(self.url, self.valid_file)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_file_upload_by_unauthorized_user(self):
+        """
+        Should fail if the user is not either staff or a student
+        enrolled in the course.
+        """
+        self.user_login()
+        response = self.client.post(self.url, self.valid_file)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_file_upload_by_enrolled_user(self):
+        """
+        Should succeed when a valid file is uploaded by an authenticated
+        user who's enrolled in the course.
+        """
+        self.user_login()
+        self.enroll_user_in_course()
+        response = self.client.post(self.url, self.valid_file)
+        self.assert_upload_success(response)
+
+    def test_file_upload_by_global_staff(self):
+        """
+        Should succeed when a valid file is uploaded by a global staff
+        member.
+        """
+        self.user_login()
+        GlobalStaff().add_users(self.user)
+        response = self.client.post(self.url, self.valid_file)
+        self.assert_upload_success(response)
+
+    def test_file_upload_by_instructor(self):
+        """
+        Should succeed when a valid file is uploaded by a course instructor.
+        """
+        self.user_login()
+        CourseInstructorRole(course_key=self.course.id).add_users(self.user)
+        response = self.client.post(self.url, self.valid_file)
+        self.assert_upload_success(response)
+
+    def test_file_upload_by_course_staff(self):
+        """
+        Should succeed when a valid file is uploaded by a course staff
+        member.
+        """
+        self.user_login()
+        CourseStaffRole(course_key=self.course.id).add_users(self.user)
+        response = self.client.post(self.url, self.valid_file)
+        self.assert_upload_success(response)
+
+    def test_file_upload_with_thread_key(self):
+        """
+        Should contain the given thread_key in the uploaded file name.
+        """
+        self.user_login()
+        self.enroll_user_in_course()
+        response = self.client.post(self.url, {
+            **self.valid_file,
+            "thread_key": "somethread",
+        })
+        response_data = json.loads(response.content)
+        assert "/somethread/" in response_data["location"]
+
+    def test_file_upload_with_invalid_file(self):
+        """
+        Should fail if the uploaded file format is not allowed.
+        """
+        self.user_login()
+        self.enroll_user_in_course()
+        invalid_file = {
+            "uploaded_file": SimpleUploadedFile(
+                "test.txt",
+                b"test content",
+                content_type="text/plain",
+            ),
+        }
+        response = self.client.post(self.url, invalid_file)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_file_upload_with_invalid_course_id(self):
+        """
+        Should fail if the course does not exist.
+        """
+        self.user_login()
+        self.enroll_user_in_course()
+        url = reverse("upload_file", kwargs={"course_id": "d/e/f"})
+        response = self.client.post(url, self.valid_file)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_file_upload_with_no_data(self):
+        """
+        Should fail when the user sends a request missing an
+        `uploaded_file` field.
+        """
+        self.user_login()
+        self.enroll_user_in_course()
+        response = self.client.post(self.url, data={})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@mock.patch.dict("django.conf.settings.FEATURES", {"ENABLE_DISCUSSION_SERVICE": True})
 class CourseViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
     """Tests for CourseView"""
     def setUp(self):
@@ -163,6 +313,8 @@ class CourseViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
                     "http://testserver/api/discussion/v1/threads/?course_id=x%2Fy%2Fz&following=True"
                 ),
                 "topics_url": "http://testserver/api/discussion/v1/course_topics/x/y/z",
+                "allow_anonymous": True,
+                "allow_anonymous_to_peers": False,
             }
         )
 
@@ -335,13 +487,24 @@ class ReplaceUsernamesViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
 
 @ddt.ddt
 @mock.patch.dict("django.conf.settings.FEATURES", {"ENABLE_DISCUSSION_SERVICE": True})
-class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
+class CourseTopicsViewTest(DiscussionAPIViewTestMixin, CommentsServiceMockMixin, ModuleStoreTestCase):
     """
     Tests for CourseTopicsView
     """
+
     def setUp(self):
+        httpretty.reset()
+        httpretty.enable()
+        self.addCleanup(httpretty.reset)
+        self.addCleanup(httpretty.disable)
         super().setUp()
         self.url = reverse("course_topics", kwargs={"course_id": str(self.course.id)})
+        self.thread_counts_map = {
+            "courseware-1": {"discussion": 2, "question": 3},
+            "courseware-2": {"discussion": 4, "question": 5},
+            "courseware-3": {"discussion": 7, "question": 2},
+        }
+        self.register_get_course_commentable_counts_response(self.course.id, self.thread_counts_map)
 
     def create_course(self, modules_count, module_store, topics):
         """
@@ -367,7 +530,7 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
                 discussion_target=f'Discussion {i}',
                 publish_item=False,
             )
-        return course_url
+        return course_url, course.id
 
     def make_discussion_xblock(self, topic_id, category, subcategory, **kwargs):
         """
@@ -405,6 +568,7 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
                     "children": [],
                     "thread_list_url":
                         "http://testserver/api/discussion/v1/threads/?course_id=x%2Fy%2Fz&topic_id=test_topic",
+                    "thread_counts": {"discussion": 0, "question": 0},
                 }],
             }
         )
@@ -420,7 +584,8 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
     )
     @ddt.unpack
     def test_bulk_response(self, modules_count, module_store, mongo_calls, topics):
-        course_url = self.create_course(modules_count, module_store, topics)
+        course_url, course_id = self.create_course(modules_count, module_store, topics)
+        self.register_get_course_commentable_counts_response(course_id, {})
         with check_mongo_calls(mongo_calls):
             with modulestore().default_store(module_store):
                 self.client.get(course_url)
@@ -461,12 +626,14 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
                             "id": "topic_id_1",
                             "thread_list_url": "http://testserver/api/discussion/v1/threads/?"
                                                "course_id=x%2Fy%2Fz&topic_id=topic_id_1",
-                            "name": "test_target_1"
+                            "name": "test_target_1",
+                            "thread_counts": {"discussion": 0, "question": 0},
                         }],
                         "id": None,
                         "thread_list_url": "http://testserver/api/discussion/v1/threads/?"
                                            "course_id=x%2Fy%2Fz&topic_id=topic_id_1",
-                        "name": "test_category_1"
+                        "name": "test_category_1",
+                        "thread_counts": None,
                     },
                     {
                         "children":
@@ -475,12 +642,14 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
                                 "id": "topic_id_2",
                                 "thread_list_url": "http://testserver/api/discussion/v1/threads/?"
                                                    "course_id=x%2Fy%2Fz&topic_id=topic_id_2",
-                                "name": "test_target_2"
+                                "name": "test_target_2",
+                                "thread_counts": {"discussion": 0, "question": 0},
                             }],
                         "id": None,
                         "thread_list_url": "http://testserver/api/discussion/v1/threads/?"
                                            "course_id=x%2Fy%2Fz&topic_id=topic_id_2",
-                        "name": "test_category_2"
+                        "name": "test_category_2",
+                        "thread_counts": None,
                     }
                 ]
             }
@@ -545,10 +714,12 @@ class ThreadViewSetListTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase, Pro
             "updated_at": "2015-04-28T11:11:11Z",
             "vote_count": 4,
             "comment_count": 6,
+            "can_delete": False,
             "unread_comment_count": 3,
             "voted": True,
             "author": self.author.username,
             "editable_fields": ["abuse_flagged", "following", "read", "voted"],
+            "abuse_flagged_count": None,
         })]
         self.register_get_threads_response(source_threads, page=1, num_pages=2)
         response = self.client.get(self.url, {"course_id": str(self.course.id), "following": ""})
@@ -848,7 +1019,7 @@ class ThreadViewSetCreateTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             "topic_id": "test_topic",
             "type": "discussion",
             "title": "Test Title",
-            "raw_body": "Test body",
+            "raw_body": "# Test \n This is a very long body that will be truncated for the preview.",
         }
         response = self.client.post(
             self.url,
@@ -857,14 +1028,21 @@ class ThreadViewSetCreateTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
         )
         assert response.status_code == 200
         response_data = json.loads(response.content.decode('utf-8'))
-        assert response_data == self.expected_thread_data({'read': True})
+        assert response_data == self.expected_thread_data({
+            "read": True,
+            "raw_body": "# Test \n This is a very long body that will be truncated for the preview.",
+            "preview_body": "Test This is a very long body that will be…",
+            "rendered_body": "<h1>Test</h1>\n<p>This is a very long body that will be truncated for the preview.</p>",
+        })
         assert httpretty.last_request().parsed_body == {  # lint-amnesty, pylint: disable=no-member
             'course_id': [str(self.course.id)],
             'commentable_id': ['test_topic'],
             'thread_type': ['discussion'],
             'title': ['Test Title'],
-            'body': ['Test body'],
-            'user_id': [str(self.user.id)]
+            'body': ['# Test \n This is a very long body that will be truncated for the preview.'],
+            'user_id': [str(self.user.id)],
+            'anonymous': ['False'],
+            'anonymous_to_peers': ['False'],
         }
 
     def test_error(self):
@@ -913,7 +1091,11 @@ class ThreadViewSetPartialUpdateTest(DiscussionAPIViewTestMixin, ModuleStoreTest
         assert response_data == self.expected_thread_data({
             'raw_body': 'Edited body',
             'rendered_body': '<p>Edited body</p>',
-            'editable_fields': ['abuse_flagged', 'following', 'raw_body', 'read', 'title', 'topic_id', 'type', 'voted'],
+            'preview_body': 'Edited body',
+            'editable_fields': [
+                'abuse_flagged', 'anonymous', 'following', 'raw_body', 'read',
+                'title', 'topic_id', 'type', 'voted'
+            ],
             'created_at': 'Test Created Date',
             'updated_at': 'Test Updated Date',
             'comment_count': 1,
@@ -993,7 +1175,10 @@ class ThreadViewSetPartialUpdateTest(DiscussionAPIViewTestMixin, ModuleStoreTest
         assert response_data == self.expected_thread_data({
             'comment_count': 1,
             'read': True,
-            'editable_fields': ['abuse_flagged', 'following', 'raw_body', 'read', 'title', 'topic_id', 'type', 'voted'],
+            'editable_fields': [
+                'abuse_flagged', 'anonymous', 'following', 'raw_body', 'read',
+                'title', 'topic_id', 'type', 'voted'
+            ],
             'response_count': 2
         })
 
@@ -1016,6 +1201,7 @@ class ThreadViewSetPartialUpdateTest(DiscussionAPIViewTestMixin, ModuleStoreTest
         assert response_data == self.expected_thread_data({
             'author': str(thread_owner_user.username),
             'comment_count': 1,
+            'can_delete': False,
             'read': True,
             'editable_fields': ['abuse_flagged', 'following', 'read', 'voted'],
             'response_count': 2
@@ -1112,11 +1298,15 @@ class CommentViewSetListTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase, Pr
             "endorsed_by_label": None,
             "endorsed_at": None,
             "abuse_flagged": False,
+            "abuse_flagged_any_user": None,
             "voted": False,
             "vote_count": 0,
             "children": [],
             "editable_fields": ["abuse_flagged", "voted"],
             "child_count": 0,
+            "can_delete": True,
+            "anonymous": False,
+            "anonymous_to_peers": False,
         }
         response_data.update(overrides or {})
         return response_data
@@ -1147,6 +1337,7 @@ class CommentViewSetListTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase, Pr
             "voted": True,
             "vote_count": 4,
             "raw_body": "Test body",
+            "can_delete": False,
             "rendered_body": "<p>Test body</p>",
             "created_at": "2015-05-11T00:00:00Z",
             "updated_at": "2015-05-11T11:11:11Z",
@@ -1310,8 +1501,8 @@ class CommentViewSetListTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase, Pr
         self.register_get_thread_response(thread)
         response = self.client.get(self.url, {"thread_id": self.thread_id})
         expected_comments = [
-            self.expected_response_comment(overrides={"id": "test_response_1", "child_count": 2}),
-            self.expected_response_comment(overrides={"id": "test_response_2", "child_count": 3}),
+            self.expected_response_comment(overrides={"id": "test_response_1", "child_count": 2, "can_delete": False}),
+            self.expected_response_comment(overrides={"id": "test_response_2", "child_count": 3, "can_delete": False}),
         ]
         self.assert_response_correct(
             response,
@@ -1499,11 +1690,15 @@ class CommentViewSetCreateTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             "endorsed_by_label": None,
             "endorsed_at": None,
             "abuse_flagged": False,
+            "abuse_flagged_any_user": None,
             "voted": False,
             "vote_count": 0,
             "children": [],
-            "editable_fields": ["abuse_flagged", "raw_body", "voted"],
+            "editable_fields": ["abuse_flagged", "anonymous", "raw_body", "voted"],
             "child_count": 0,
+            "can_delete": True,
+            "anonymous": False,
+            "anonymous_to_peers": False,
         }
         response = self.client.post(
             self.url,
@@ -1517,7 +1712,9 @@ class CommentViewSetCreateTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
         assert httpretty.last_request().parsed_body == {  # lint-amnesty, pylint: disable=no-member
             'course_id': [str(self.course.id)],
             'body': ['Test body'],
-            'user_id': [str(self.user.id)]
+            'user_id': [str(self.user.id)],
+            'anonymous': ['False'],
+            'anonymous_to_peers': ['False'],
         }
 
     def test_error(self):
@@ -1583,11 +1780,15 @@ class CommentViewSetPartialUpdateTest(DiscussionAPIViewTestMixin, ModuleStoreTes
             "endorsed_by_label": None,
             "endorsed_at": None,
             "abuse_flagged": False,
+            "abuse_flagged_any_user": None,
             "voted": False,
             "vote_count": 0,
             "children": [],
             "editable_fields": [],
             "child_count": 0,
+            "can_delete": True,
+            "anonymous": False,
+            "anonymous_to_peers": False,
         }
         response_data.update(overrides or {})
         return response_data
@@ -1602,7 +1803,7 @@ class CommentViewSetPartialUpdateTest(DiscussionAPIViewTestMixin, ModuleStoreTes
         assert response_data == self.expected_response_data({
             'raw_body': 'Edited body',
             'rendered_body': '<p>Edited body</p>',
-            'editable_fields': ['abuse_flagged', 'raw_body', 'voted'],
+            'editable_fields': ['abuse_flagged', 'anonymous', 'raw_body', 'voted'],
             'created_at': 'Test Created Date',
             'updated_at': 'Test Updated Date'
         })
@@ -1642,6 +1843,7 @@ class CommentViewSetPartialUpdateTest(DiscussionAPIViewTestMixin, ModuleStoreTes
         response_data = json.loads(response.content.decode('utf-8'))
         assert response_data == self.expected_response_data({
             'abuse_flagged': value,
+            "abuse_flagged_any_user": None,
             'editable_fields': ['abuse_flagged']
         })
 
@@ -1768,8 +1970,12 @@ class CommentViewSetRetrieveTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase
             "voted": False,
             "vote_count": 0,
             "abuse_flagged": False,
-            "editable_fields": ["abuse_flagged", "raw_body", "voted"],
+            "abuse_flagged_any_user": None,
+            "editable_fields": ["abuse_flagged", "anonymous", "raw_body", "voted"],
             "child_count": 0,
+            "can_delete": True,
+            "anonymous": False,
+            "anonymous_to_peers": False,
         }
 
         response = self.client.get(self.url)

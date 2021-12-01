@@ -10,7 +10,7 @@ import waffle  # lint-amnesty, pylint: disable=invalid-django-waffle-import
 from completion.waffle import ENABLE_COMPLETION_TRACKING_SWITCH
 from completion.models import BlockCompletion
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from social_django.models import UserSocialAuth
 
 from common.djangoapps.student.models import AccountRecovery, Registration, get_retired_email_by_email
@@ -39,9 +39,10 @@ def validate_social_link(platform_name, new_social_link):
     # Ensure that the new link is valid.
     if formatted_social_link is None:
         required_url_stub = settings.SOCIAL_PLATFORMS[platform_name]['url_stub']
-        raise ValueError(_('Make sure that you are providing a valid username or a URL that contains "{url_stub}". '
-                           'To remove the link from your edX profile, '
-                           'leave this field blank.').format(url_stub=required_url_stub))
+        raise ValueError(_(
+            'Make sure that you are providing a valid username or a URL that contains "{url_stub}". '
+            'To remove the link from your {platform_name} profile, leave this field blank.'
+        ).format(url_stub=required_url_stub, platform_name=settings.PLATFORM_NAME))
 
 
 def format_social_link(platform_name, new_social_link):

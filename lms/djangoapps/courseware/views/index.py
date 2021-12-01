@@ -16,7 +16,7 @@ from django.template.context_processors import csrf
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import View
@@ -64,7 +64,10 @@ from ..masquerade import check_content_start_date_for_masquerade_user, setup_mas
 from ..model_data import FieldDataCache
 from ..module_render import get_module_for_descriptor, toc_for_course
 from ..permissions import MASQUERADE_AS_STUDENT
-from ..toggles import courseware_legacy_is_visible, courseware_mfe_is_advertised
+from ..toggles import (
+    courseware_legacy_is_visible,
+    courseware_mfe_is_advertised
+)
 from .views import CourseTabView
 
 log = logging.getLogger("edx.courseware.views.index")
@@ -442,6 +445,7 @@ class CoursewareIndex(View):
             'sequence_title': None,
             'disable_accordion': not DISABLE_COURSE_OUTLINE_PAGE_FLAG.is_enabled(self.course.id),
             'show_search': show_search,
+            'render_course_wide_assets': True,
         }
         courseware_context.update(
             get_experiment_user_metadata_context(

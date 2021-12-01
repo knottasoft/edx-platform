@@ -7,7 +7,8 @@ from urllib.parse import quote
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.sites.shortcuts import get_current_site
 from django.http import HttpRequest
-from django.utils.translation import get_language, to_locale, ugettext_lazy
+from django.utils.translation import get_language, to_locale, gettext_lazy
+from lti_consumer.api import get_lti_pii_sharing_state_for_course
 from lti_consumer.lti_1p1.contrib.django import lti_embed
 from lti_consumer.models import LtiConfiguration
 from opaque_keys.edx.keys import CourseKey
@@ -34,7 +35,43 @@ class LtiCourseLaunchMixin:
     }
     DEFAULT_ROLE = 'Student'
 
+    def _get_pii_lti_parameters(self, course: CourseBlock, request: HttpRequest) -> Dict[str, str]:
+        """
+        Get LTI parameters that contain PII.
+
+        Args:
+            course (CourseBlock): CourseBlock object.
+            request (HttpRequest): Request object for view in which LTI will be embedded.
+
+        Returns:
+            Dictionary with LTI parameters containing PII.
+        """
+        pii_sharing_allowed = get_lti_pii_sharing_state_for_course(course.id)
+        if not pii_sharing_allowed:
+            return {}
+        lti_config = self._get_lti_config(course)
+        # Currently only LTI 1.1 is supported by the tab
+        if lti_config.version != lti_config.LTI_1P1:
+            return {}
+
+        pii_config = {}
+        if lti_config.pii_share_username:
+            pii_config['person_sourcedid'] = request.user.username
+        if lti_config.pii_share_email:
+            pii_config['person_contact_email_primary'] = request.user.email
+        return pii_config
+
     def _get_additional_lti_parameters(self, course: CourseBlock, request: HttpRequest) -> Dict[str, str]:
+        """
+        Get additional misc LTI parameters.
+
+        Args:
+            course (CourseBlock): CourseBlock object.
+            request (HttpRequest): Request object for view in which LTI will be embedded.
+
+        Returns:
+            Dictionary with additional LTI parameters.
+        """
         lti_config = self._get_lti_config(course)
         additional_config = lti_config.lti_config.get('additional_parameters', {})
         return additional_config
@@ -98,6 +135,7 @@ class LtiCourseLaunchMixin:
         context_title = self._get_context_title(course)
         result_sourcedid = quote(self._get_result_sourcedid(context_id, resource_link_id, user_id))
         additional_params = self._get_additional_lti_parameters(course, request)
+        pii_params = self._get_pii_lti_parameters(course, request)
         locale = to_locale(get_language())
 
         return lti_embed(
@@ -111,6 +149,7 @@ class LtiCourseLaunchMixin:
             context_label=context_id,
             result_sourcedid=result_sourcedid,
             launch_presentation_locale=locale,
+            **pii_params,
             **additional_params,
         )
 
@@ -156,6 +195,7 @@ class LtiCourseTab(LtiCourseLaunchMixin, EnrolledTab):
     A tab to add custom LTI components to a course in a tab.
     """
     type = 'lti_tab'
+    priority = 120
     is_default = False
     allow_multiple = True
 
@@ -170,7 +210,7 @@ class LtiCourseTab(LtiCourseLaunchMixin, EnrolledTab):
         self.lti_config_id = tab_dict.get('lti_config_id') if tab_dict else lti_config_id
 
         if tab_dict is None:
-            tab_dict = dict()
+            tab_dict = {}
 
         if name is not None:
             tab_dict['name'] = name
@@ -227,9 +267,10 @@ class DiscussionLtiCourseTab(LtiCourseLaunchMixin, TabFragmentViewMixin, Enrolle
     Course tab that loads the associated LTI-based discussion provider in a tab.
     """
     type = 'lti_discussion'
+    priority = 41
     allow_multiple = False
     is_dynamic = True
-    title = ugettext_lazy("Discussion")
+    title = gettext_lazy("Discussion")
 
     def _get_lti_config(self, course: CourseBlock) -> LtiConfiguration:
         config = DiscussionsConfiguration.get(course.id)
@@ -237,11 +278,7 @@ class DiscussionLtiCourseTab(LtiCourseLaunchMixin, TabFragmentViewMixin, Enrolle
 
     @classmethod
     def is_enabled(cls, course, user=None):
+        """Check if the tab is enabled."""
         if super().is_enabled(course, user):
-            config = DiscussionsConfiguration.get(course.id)
-            return (
-                config.enabled and
-                config.lti_configuration is not None
-            )
-        else:
-            return False
+            return DiscussionsConfiguration.lti_discussion_enabled(course.id)
+        return False

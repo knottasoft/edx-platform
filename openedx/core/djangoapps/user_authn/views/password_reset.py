@@ -4,6 +4,7 @@ import logging
 from django import forms
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.hashers import UNUSABLE_PASSWORD_PREFIX
 from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imported-auth-user
@@ -15,9 +16,9 @@ from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpRespo
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import base36_to_int, int_to_base36, urlsafe_base64_encode
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from edx_ace import ace
@@ -337,7 +338,7 @@ def _uidb36_to_uidb64(uidb36):
     Returns: base64-encoded user ID. Otherwise returns a dummy, invalid ID
     """
     try:
-        uidb64 = force_text(urlsafe_base64_encode(force_bytes(base36_to_int(uidb36))))
+        uidb64 = force_str(urlsafe_base64_encode(force_bytes(base36_to_int(uidb36))))
     except ValueError:
         uidb64 = '1'  # dummy invalid ID (incorrect padding for base64)
     return uidb64
@@ -509,6 +510,7 @@ class PasswordResetConfirmWrapper(PasswordResetConfirmView):
         if LoginFailures.is_feature_enabled():
             LoginFailures.clear_lockout_counter(updated_user)
 
+        update_session_auth_hash(request, updated_user)
         send_password_reset_success_email(updated_user, request)
         return response
 
@@ -773,6 +775,7 @@ class LogistrationPasswordResetView(APIView):  # lint-amnesty, pylint: disable=m
                     LoginFailures.clear_lockout_counter(user)
 
                 send_password_reset_success_email(user, request)
+                update_session_auth_hash(request, user)
         except ValidationError as err:
             AUDIT_LOG.exception("Password validation failed")
             error_status = {

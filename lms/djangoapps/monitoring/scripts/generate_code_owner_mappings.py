@@ -3,7 +3,7 @@ This script generates code owner mappings for monitoring LMS.
 
 Sample usage::
 
-    python lms/djangoapps/monitoring/scripts/generate_code_owner_mappings.py --repo-csv "Own Repos.csv" --app-csv "Own edx-platform Apps.csv" --dep-csv "Own edx-platform Libs.csv"
+    python lms/djangoapps/monitoring/scripts/generate_code_owner_mappings.py --repo-csv "Own Repos.csv" --app-csv "Own edx-platform Apps.csv" --dep-csv "Reference edx-platform Libs.csv"
 
 Or for more details::
 
@@ -18,7 +18,7 @@ import re
 import click
 
 # Maps edx-platform installed Django apps to the edx repo that contains
-# the app code.
+# the app code. Please add in alphabetical order.
 EDX_REPO_APPS = {
     'bulk_grades': 'https://github.com/edx/edx-bulk-grades',
     'coaching': 'https://github.com/edx/platform-plugin-coaching',
@@ -26,31 +26,35 @@ EDX_REPO_APPS = {
     'config_models': 'https://github.com/edx/django-config-models',
     'consent': 'https://github.com/edx/edx-enterprise',
     'csrf': 'https://github.com/edx/edx-drf-extensions',
+    'edx_name_affirmation': 'https://github.com/edx/edx-name-affirmation',
     'edx_proctoring': 'https://github.com/edx/edx-proctoring',
     'edxval': 'https://github.com/edx/edx-val',
     'enterprise': 'https://github.com/edx/edx-enterprise',
     'enterprise_learner_portal': 'https://github.com/edx/edx-enterprise',
+    'eventtracking': 'https://github.com/edx/event-tracking',
     'help_tokens': 'https://github.com/edx/help-tokens',
     'integrated_channels': 'https://github.com/edx/edx-enterprise',
+    'lti_consumer': 'https://github.com/edx/xblock-lti-consumer',
+    'notices': 'https://github.com/edx/platform-plugin-notices',
     'organizations': 'https://github.com/edx/edx-organizations',
     'search': 'https://github.com/edx/edx-search',
     'super_csv': 'https://github.com/edx/super-csv',
     'wiki': 'https://github.com/edx/django-wiki',
-    'lti_consumer': 'https://github.com/edx/xblock-lti-consumer',
 }
 
 # Maps edx-platform installed Django apps to the third-party repo that contains
-# the app code.
+# the app code. Please add in alphabetical order.
 THIRD_PARTY_APPS = {
+    'corsheaders': 'https://github.com/adamchainz/django-cors-headers',
     'django': 'https://github.com/django/django',
     'django_object_actions': 'https://github.com/crccheck/django-object-actions',
     'drf_yasg': 'https://github.com/axnsan12/drf-yasg',
+    'edx_sga': 'https://github.com/mitodl/edx-sga',
     'lx_pathway_plugin': 'https://github.com/open-craft/lx-pathway-plugin',
+    'oauth2_provider': 'https://github.com/evonove/django-oauth-toolkit',
     'rest_framework': 'https://github.com/encode/django-rest-framework',
     'simple_history': 'https://github.com/treyhunner/django-simple-history',
     'social_django': 'https://github.com/python-social-auth/social-app-django',
-    'corsheaders': 'https://github.com/adamchainz/django-cors-headers',
-    'edx_sga': 'https://github.com/mitodl/edx-sga',
 }
 
 

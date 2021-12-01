@@ -8,7 +8,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
-from django.utils.encoding import python_2_unicode_compatible
+
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
 
@@ -179,7 +179,6 @@ class UserOrgTag(TimeStampedModel, DeletableByUserValue):
         unique_together = ("user", "org", "key")
 
 
-@python_2_unicode_compatible
 class RetirementState(models.Model):
     """
     Stores the list and ordering of the steps of retirement, this should almost never change
@@ -200,18 +199,21 @@ class RetirementState(models.Model):
 
     @classmethod
     def get_dead_end_states(cls):
-        return cls.objects.filter(is_dead_end_state=True)
+        # We use models.Value(1) to make use of the indexing on the field. MySQL does not
+        # support boolean types natively, and checking for False will cause a table scan.
+        return cls.objects.filter(is_dead_end_state=models.Value(1))
 
     @classmethod
     def get_dead_end_state_names_list(cls):
-        return cls.objects.filter(is_dead_end_state=True).values_list('state_name', flat=True)
+        # We use models.Value(0) to make use of the indexing on the field. MySQL does not
+        # support boolean types natively, and checking for False will cause a table scan.
+        return cls.objects.filter(is_dead_end_state=models.Value(1)).values_list('state_name', flat=True)
 
     @classmethod
     def get_state_names_list(cls):
         return cls.objects.all().values_list('state_name', flat=True)
 
 
-@python_2_unicode_compatible
 class UserRetirementPartnerReportingStatus(TimeStampedModel):
     """
     When a user has been retired from LMS it will still need to be reported out to
@@ -241,7 +243,6 @@ class UserRetirementPartnerReportingStatus(TimeStampedModel):
         )
 
 
-@python_2_unicode_compatible
 class UserRetirementRequest(TimeStampedModel):
     """
     Records and perists every user retirement request.

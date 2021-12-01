@@ -42,10 +42,12 @@ setup(
             "calculator = lms.djangoapps.courseware.plugins:CalculatorCourseApp",
             "discussion = openedx.core.djangoapps.discussions.plugins:DiscussionCourseApp",
             "edxnotes = lms.djangoapps.edxnotes.plugins:EdxNotesCourseApp",
+            "proctoring = lms.djangoapps.courseware.plugins:ProctoringCourseApp",
             "progress = lms.djangoapps.courseware.plugins:ProgressCourseApp",
             "teams = lms.djangoapps.teams.plugins:TeamsCourseApp",
             "textbooks = lms.djangoapps.courseware.plugins:TextbooksCourseApp",
-            "wiki = lms.djangoapps.course_wiki.plugins:WikiCourseApp",
+            "wiki = lms.djangoapps.course_wiki.plugins.course_app:WikiCourseApp",
+            "custom_pages = lms.djangoapps.courseware.plugins:CustomPagesCourseApp",
         ],
         "openedx.course_tool": [
             "calendar_sync_toggle = openedx.features.calendar_sync.plugins:CalendarSyncToggleTool",
@@ -113,6 +115,7 @@ setup(
             # consolidate the multiple discussions-related Django apps and
             # either put them in the openedx/ dir, or in another repo entirely.
             "discussion = lms.djangoapps.discussion.apps:DiscussionConfig",
+            "discussions = openedx.core.djangoapps.discussions.apps:DiscussionsConfig",
             "olx_rest_api = openedx.core.djangoapps.olx_rest_api.apps:OlxRestApiAppConfig",
             "plugins = openedx.core.djangoapps.plugins.apps:PluginsConfig",
             "theming = openedx.core.djangoapps.theming.apps:ThemingConfig",

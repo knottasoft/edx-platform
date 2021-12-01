@@ -13,14 +13,21 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from rest_framework import serializers
 
-from common.djangoapps.student.models import UserPasswordToggleHistory
+
+from common.djangoapps.student.models import (
+    LanguageProficiency,
+    PendingNameChange,
+    SocialLink,
+    UserPasswordToggleHistory,
+    UserProfile
+)
 from lms.djangoapps.badges.utils import badges_enabled
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 from openedx.core.djangoapps.user_api import errors
 from openedx.core.djangoapps.user_api.accounts.utils import is_secondary_email_feature_enabled
 from openedx.core.djangoapps.user_api.models import RetirementState, UserPreference, UserRetirementStatus
 from openedx.core.djangoapps.user_api.serializers import ReadOnlyFieldsSerializerMixin
-from common.djangoapps.student.models import LanguageProficiency, SocialLink, UserProfile
+from openedx.core.djangoapps.user_authn.views.registration_form import contains_html, contains_url
 
 from . import (
     ACCOUNT_VISIBILITY_PREF_KEY,
@@ -161,6 +168,7 @@ class UserReadOnlySerializer(serializers.Serializer):  # lint-amnesty, pylint: d
             "social_links": None,
             "extended_profile_fields": None,
             "phone_number": None,
+            "pending_name_change": None,
         }
 
         if user_profile:
@@ -192,6 +200,12 @@ class UserReadOnlySerializer(serializers.Serializer):  # lint-amnesty, pylint: d
                     "phone_number": user_profile.phone_number,
                 }
             )
+
+        try:
+            pending_name_change = PendingNameChange.objects.get(user=user)
+            data.update({"pending_name_change": pending_name_change.new_name})
+        except PendingNameChange.DoesNotExist:
+            pass
 
         if is_secondary_email_feature_enabled():
             data.update(
@@ -293,7 +307,7 @@ class AccountLegacyProfileSerializer(serializers.HyperlinkedModelSerializer, Rea
         """
         Enforce all languages are unique.
         """
-        language_proficiencies = [language for language in value]  # lint-amnesty, pylint: disable=unnecessary-comprehension
+        language_proficiencies = list(value)
         unique_language_proficiencies = {language["code"] for language in language_proficiencies}
         if len(language_proficiencies) != len(unique_language_proficiencies):
             raise serializers.ValidationError("The language_proficiencies field must consist of unique languages.")
@@ -303,7 +317,7 @@ class AccountLegacyProfileSerializer(serializers.HyperlinkedModelSerializer, Rea
         """
         Enforce only one entry for a particular social platform.
         """
-        social_links = [social_link for social_link in value]  # lint-amnesty, pylint: disable=unnecessary-comprehension
+        social_links = list(value)
         unique_social_links = {social_link["platform"] for social_link in social_links}
         if len(social_links) != len(unique_social_links):
             raise serializers.ValidationError("The social_links field must consist of unique social platforms.")
@@ -523,6 +537,23 @@ class UserRetirementPartnerReportSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         pass
+
+
+class PendingNameChangeSerializer(serializers.Serializer):  # lint-amnesty, pylint: disable=abstract-method
+    """
+    Serialize the PendingNameChange model
+    """
+    new_name = serializers.CharField()
+
+    class Meta:
+        model = PendingNameChange
+        fields = ('new_name',)
+
+    def validate_new_name(self, new_name):
+        if contains_html(new_name):
+            raise serializers.ValidationError('Name cannot contain the following characters: < >')
+        if contains_url(new_name):
+            raise serializers.ValidationError('Name cannot contain a URL')
 
 
 def get_extended_profile(user_profile):

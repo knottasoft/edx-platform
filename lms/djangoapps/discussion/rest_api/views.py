@@ -4,20 +4,36 @@ Discussion API views
 
 
 import logging
-from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imported-auth-user
+import uuid
+
+from django.core.exceptions import BadRequest
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from edx_rest_framework_extensions.auth.session.authentication import SessionAuthenticationAllowInactiveUser
 from opaque_keys.edx.keys import CourseKey
 from rest_framework import permissions, status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import ParseError, UnsupportedMediaType
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 
-from lms.djangoapps.discussion.django_comment_client.utils import available_division_schemes  # lint-amnesty, pylint: disable=unused-import
-from lms.djangoapps.discussion.rest_api.api import (
+from common.djangoapps.util.file import store_uploaded_file
+from lms.djangoapps.discussion.django_comment_client import settings as cc_settings
+from lms.djangoapps.course_goals.models import UserActivity
+from lms.djangoapps.instructor.access import update_forum_role
+from openedx.core.djangoapps.discussions.serializers import DiscussionSettingsSerializer
+from openedx.core.djangoapps.django_comment_common import comment_client
+from openedx.core.djangoapps.django_comment_common.models import CourseDiscussionSettings, Role
+from openedx.core.djangoapps.user_api.accounts.permissions import CanReplaceUsername, CanRetireUser
+from openedx.core.djangoapps.user_api.models import UserRetirementStatus
+from openedx.core.lib.api.authentication import BearerAuthentication, BearerAuthenticationAllowInactiveUser
+from openedx.core.lib.api.parsers import MergePatchParser
+from openedx.core.lib.api.view_utils import DeveloperErrorViewMixin, view_auth_classes
+from xmodule.modulestore.django import modulestore
+from ..rest_api.api import (
     create_comment,
     create_thread,
     delete_comment,
@@ -29,33 +45,24 @@ from lms.djangoapps.discussion.rest_api.api import (
     get_thread,
     get_thread_list,
     update_comment,
-    update_thread
+    update_thread,
 )
-from lms.djangoapps.discussion.rest_api.forms import (
+from ..rest_api.forms import (
     CommentGetForm,
     CommentListGetForm,
     CourseDiscussionRolesForm,
     CourseDiscussionSettingsForm,
-    ThreadListGetForm
+    ThreadListGetForm,
 )
-from lms.djangoapps.discussion.rest_api.serializers import (
+from ..rest_api.serializers import (
     DiscussionRolesListSerializer,
     DiscussionRolesSerializer,
-    DiscussionSettingsSerializer
 )
-from lms.djangoapps.discussion.views import get_divided_discussions  # lint-amnesty, pylint: disable=unused-import
-from lms.djangoapps.instructor.access import update_forum_role
-from openedx.core.djangoapps.django_comment_common import comment_client
-from openedx.core.djangoapps.django_comment_common.models import Role
-from openedx.core.djangoapps.django_comment_common.models import CourseDiscussionSettings
-from openedx.core.djangoapps.user_api.accounts.permissions import CanReplaceUsername, CanRetireUser
-from openedx.core.djangoapps.user_api.models import UserRetirementStatus
-from openedx.core.lib.api.authentication import BearerAuthenticationAllowInactiveUser
-from openedx.core.lib.api.parsers import MergePatchParser
-from openedx.core.lib.api.view_utils import DeveloperErrorViewMixin, view_auth_classes
-from xmodule.modulestore.django import modulestore
+from ..rest_api.permissions import IsStaffOrCourseTeamOrEnrolled
 
 log = logging.getLogger(__name__)
+
+User = get_user_model()
 
 
 @view_auth_classes()
@@ -83,11 +90,22 @@ class CourseView(DeveloperErrorViewMixin, APIView):
 
         * thread_list_url: The URL of the list of all threads in the course.
 
+        * following_thread_list_url: thread_list_url with parameter following=True
+
         * topics_url: The URL of the topic listing for the course.
+
+        * allow_anonymous: A boolean which indicating whether anonymous posts
+            are allowed or not.
+
+        * allow_anonymous_to_peers: A boolean which indicating whether posts
+            anonymous to peers are allowed or not.
     """
+
     def get(self, request, course_id):
         """Implements the GET method as described in the class docstring."""
         course_key = CourseKey.from_string(course_id)  # TODO: which class is right?
+        # Record user activity for tracking progress towards a user's course goals (for mobile app)
+        UserActivity.record_user_activity(request.user, course_key, request=request, only_if_mobile_app=True)
         return Response(get_course(request, course_key))
 
 
@@ -118,6 +136,7 @@ class CourseTopicsView(DeveloperErrorViewMixin, APIView):
         * non_courseware_topics: The list of topic trees that are not linked to
               courseware. Items are of the same format as in courseware_topics.
     """
+
     def get(self, request, course_id):
         """
         Implements the GET method as described in the class docstring.
@@ -130,6 +149,8 @@ class CourseTopicsView(DeveloperErrorViewMixin, APIView):
                 course_key,
                 set(topic_ids.strip(',').split(',')) if topic_ids else None,
             )
+            # Record user activity for tracking progress towards a user's course goals (for mobile app)
+            UserActivity.record_user_activity(request.user, course_key, request=request, only_if_mobile_app=True)
         return Response(response)
 
 
@@ -173,6 +194,17 @@ class ThreadViewSet(DeveloperErrorViewMixin, ViewSet):
         * topic_id: The id of the topic to retrieve the threads. There can be
             multiple topic_id queries to retrieve threads from multiple topics
             at once.
+
+        * author: The username of an author. If provided, only threads by this
+            author will be returned.
+
+        * thread_type: Can be 'discussion' or 'question', only return threads of
+            the selected thread type.
+
+        * flagged: If True, only return threads that have been flagged (reported)
+
+        * count_flagged: If True, return the count of flagged comments for each thread.
+          (can only be used by moderators or above)
 
         * text_search: A search string to match. Any thread whose content
             (including the bodies of comments in the thread) matches the search
@@ -221,6 +253,12 @@ class ThreadViewSet(DeveloperErrorViewMixin, ViewSet):
         * following (optional): A boolean indicating whether the user should
             follow the thread upon its creation; defaults to false
 
+        * anonymous (optional): A boolean indicating whether the post is
+        anonymous; defaults to false
+
+        * anonymous_to_peers (optional): A boolean indicating whether the post
+        is anonymous to peers; defaults to false
+
     **PATCH Parameters**:
 
         * abuse_flagged (optional): A boolean to mark thread as abusive
@@ -229,8 +267,8 @@ class ThreadViewSet(DeveloperErrorViewMixin, ViewSet):
 
         * read (optional): A boolean to mark thread as read
 
-        * topic_id, type, title, and raw_body are accepted with the same meaning
-        as in a POST request
+        * topic_id, type, title, raw_body, anonymous, and anonymous_to_peers
+        are accepted with the same meaning as in a POST request
 
         If "application/merge-patch+json" is not the specified content type,
         a 415 error is returned.
@@ -290,6 +328,14 @@ class ThreadViewSet(DeveloperErrorViewMixin, ViewSet):
 
         * response_count: The number of direct responses for a thread
 
+        * abuse_flagged_count: The number of flags(reports) on and within the
+            thread. Returns null if requesting user is not a moderator
+
+        * anonymous: A boolean indicating whether the post is anonymous
+
+        * anonymous_to_peers: A boolean indicating whether the post is
+        anonymous to peers
+
     **DELETE response values:
 
         No content is returned for a DELETE request
@@ -306,6 +352,12 @@ class ThreadViewSet(DeveloperErrorViewMixin, ViewSet):
         form = ThreadListGetForm(request.GET)
         if not form.is_valid():
             raise ValidationError(form.errors)
+
+        # Record user activity for tracking progress towards a user's course goals (for mobile app)
+        UserActivity.record_user_activity(
+            request.user, form.cleaned_data["course_id"], request=request, only_if_mobile_app=True
+        )
+
         return get_thread_list(
             request,
             form.cleaned_data["course_id"],
@@ -314,10 +366,14 @@ class ThreadViewSet(DeveloperErrorViewMixin, ViewSet):
             form.cleaned_data["topic_id"],
             form.cleaned_data["text_search"],
             form.cleaned_data["following"],
+            form.cleaned_data["author"],
+            form.cleaned_data["thread_type"],
+            form.cleaned_data["flagged"],
             form.cleaned_data["view"],
             form.cleaned_data["order_by"],
             form.cleaned_data["order_direction"],
-            form.cleaned_data["requested_fields"]
+            form.cleaned_data["requested_fields"],
+            form.cleaned_data["count_flagged"],
         )
 
     def retrieve(self, request, thread_id=None):
@@ -415,9 +471,16 @@ class CommentViewSet(DeveloperErrorViewMixin, ViewSet):
 
         * raw_body: The comment's raw body text
 
+        * anonymous (optional): A boolean indicating whether the comment is
+        anonymous; defaults to false
+
+        * anonymous_to_peers (optional): A boolean indicating whether the
+        comment is anonymous to peers; defaults to false
+
     **PATCH Parameters**:
 
-        raw_body is accepted with the same meaning as in a POST request
+        * raw_body, anonymous and anonymous_to_peers are accepted with the same
+        meaning as in a POST request
 
         If "application/merge-patch+json" is not the specified content type,
         a 415 error is returned.
@@ -468,6 +531,10 @@ class CommentViewSet(DeveloperErrorViewMixin, ViewSet):
         * abuse_flagged: Boolean indicating whether the requesting user has
           flagged the comment for abuse
 
+        * abuse_flagged_any_user: Boolean indicating whether any user has
+            flagged the comment for abuse. Returns null if requesting user
+            is not a moderator.
+
         * voted: Boolean indicating whether the requesting user has voted
           for the comment
 
@@ -477,6 +544,11 @@ class CommentViewSet(DeveloperErrorViewMixin, ViewSet):
 
         * editable_fields: The fields that the requesting user is allowed to
             modify with a PATCH request
+
+        * anonymous: A boolean indicating whether the comment is anonymous
+
+        * anonymous_to_peers: A boolean indicating whether the comment is
+        anonymous to peers
 
     **DELETE Response Value**
 
@@ -541,6 +613,79 @@ class CommentViewSet(DeveloperErrorViewMixin, ViewSet):
         if request.content_type != MergePatchParser.media_type:
             raise UnsupportedMediaType(request.content_type)
         return Response(update_comment(request, comment_id, request.data))
+
+
+class UploadFileView(DeveloperErrorViewMixin, APIView):
+    """
+    **Use Cases**
+
+        Upload a file to be attached to a thread or comment.
+
+    **URL Parameters**
+
+        * course_id:
+            The ID of the course where this thread or comment belongs.
+
+    **POST Upload File Parameters**
+
+        * thread_key:
+            If the upload belongs to a comment, refer to the parent
+            `thread_id`, otherwise it should be `"root"`.
+
+    **Example Requests**:
+        POST /api/discussion/v1/courses/{course_id}/upload/
+        Content-Type: multipart/form-data; boundary=--Boundary
+
+        ----Boundary
+        Content-Disposition: form-data; name="thread_key"
+
+        <thread_key>
+        ----Boundary
+        Content-Disposition: form-data; name="uploaded_file"; filename="<filename>.<ext>"
+        Content-Type: <mimetype>
+
+        <file_content>
+        ----Boundary--
+
+    **Response Values**
+
+        * location: The URL to access the uploaded file.
+    """
+
+    authentication_classes = (
+        JwtAuthentication,
+        BearerAuthentication,
+        SessionAuthentication,
+    )
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsStaffOrCourseTeamOrEnrolled,
+    )
+
+    def post(self, request, course_id):
+        """
+        Handles a file upload.
+        """
+        thread_key = request.POST.get("thread_key", "root")
+        unique_file_name = f"{course_id}/{thread_key}/{uuid.uuid4()}"
+        try:
+            file_storage, stored_file_name = store_uploaded_file(
+                request, "uploaded_file", cc_settings.ALLOWED_UPLOAD_FILE_TYPES,
+                unique_file_name, max_file_size=cc_settings.MAX_UPLOAD_FILE_SIZE,
+            )
+        except ValueError:
+            raise BadRequest("no `uploaded_file` was provided")  # lint-amnesty, pylint: disable=raise-missing-from
+
+        file_absolute_url = file_storage.url(stored_file_name)
+
+        # this is a no-op in production, but is required in development,
+        # since the filesystem storage returns the path without a base_url
+        file_absolute_url = request.build_absolute_uri(file_absolute_url)
+
+        return Response(
+            {"location": file_absolute_url},
+            content_type="application/json",
+        )
 
 
 class RetireUserView(APIView):

@@ -30,6 +30,8 @@ LMS_BASE = 'localhost:18000'
 CMS_BASE = 'localhost:18010'
 SITE_NAME = LMS_BASE
 
+SESSION_COOKIE_NAME = 'lms_sessionid'
+
 # By default don't use a worker, execute tasks as if they were local functions
 CELERY_ALWAYS_EAGER = True
 HTTPS = 'off'
@@ -41,6 +43,7 @@ IDA_LOGOUT_URI_LIST = [
     'http://localhost:18130/logout/',  # ecommerce
     'http://localhost:18150/logout/',  # credentials
     'http://localhost:18381/logout/',  # discovery
+    'http://localhost:18010/logout/',  # studio
 ]
 
 ################################ LOGGERS ######################################
@@ -174,7 +177,10 @@ FEATURES['CERTIFICATES_HTML_VIEW'] = True
 
 
 ########################## Course Discovery #######################
-LANGUAGE_MAP = {'terms': {lang: display for lang, display in ALL_LANGUAGES}, 'name': 'Language'}  # lint-amnesty, pylint: disable=unnecessary-comprehension
+LANGUAGE_MAP = {
+    'terms': dict(ALL_LANGUAGES),
+    'name': 'Language',
+}
 COURSE_DISCOVERY_MEANINGS = {
     'org': {
         'name': 'Organization',
@@ -256,7 +262,7 @@ CORS_ALLOW_HEADERS = corsheaders_default_headers + (
     'use-jwt-cookie',
 )
 
-LOGIN_REDIRECT_WHITELIST = [
+LOGIN_REDIRECT_WHITELIST.extend([
     CMS_BASE,
     # Allow redirection to all micro-frontends.
     # Please add your MFE if is not already listed here.
@@ -264,6 +270,7 @@ LOGIN_REDIRECT_WHITELIST = [
     #   BASE_URL=http://localhost:$PORT
     # as opposed to:
     #   BASE_URL=localhost:$PORT
+    'localhost:1997',  # frontend-app-account
     'localhost:1976',  # frontend-app-program-console
     'localhost:1994',  # frontend-app-gradebook
     'localhost:2000',  # frontend-app-learning
@@ -272,7 +279,7 @@ LOGIN_REDIRECT_WHITELIST = [
     'localhost:18400',  # frontend-app-publisher
     ENTERPRISE_LEARNER_PORTAL_NETLOC,  # frontend-app-learner-portal-enterprise
     ENTERPRISE_ADMIN_PORTAL_NETLOC,  # frontend-app-admin-portal
-]
+])
 
 ###################### JWTs ######################
 JWT_AUTH.update({
@@ -330,6 +337,9 @@ LEARNING_MICROFRONTEND_URL = 'http://localhost:2000'
 ACCOUNT_MICROFRONTEND_URL = 'http://localhost:1997'
 AUTHN_MICROFRONTEND_URL = 'http://localhost:1999'
 AUTHN_MICROFRONTEND_DOMAIN = 'localhost:1999'
+
+################### FRONTEND APPLICATION DISCUSSIONS ###################
+DISCUSSIONS_MICROFRONTEND_URL = 'http://localhost:2002'
 
 ############## Docker based devstack settings #######################
 
@@ -397,11 +407,6 @@ if FEATURES.get('ENABLE_ENTERPRISE_INTEGRATION'):
 DCS_SESSION_COOKIE_SAMESITE = 'Lax'
 DCS_SESSION_COOKIE_SAMESITE_FORCE_ALL = True
 
-#####################################################################
-# See if the developer has any local overrides.
-if os.path.isfile(join(dirname(abspath(__file__)), 'private.py')):
-    from .private import *  # pylint: disable=import-error,wildcard-import
-
 ########################## THEMING  #######################
 # If you want to enable theming in devstack, uncomment this section and add any relevant
 # theme directories to COMPREHENSIVE_THEME_DIRS
@@ -432,3 +437,12 @@ FEATURES['ENABLE_PREREQUISITE_COURSES'] = True
 # Used in edx-proctoring for ID generation in lieu of SECRET_KEY - dummy value
 # (ref MST-637)
 PROCTORING_USER_OBFUSCATION_KEY = '85920908f28904ed733fe576320db18cabd7b6cd'
+
+#################### Webpack Configuration Settings ##############################
+WEBPACK_LOADER['DEFAULT']['TIMEOUT'] = 5
+
+################# New settings must go ABOVE this line #################
+########################################################################
+# See if the developer has any local overrides.
+if os.path.isfile(join(dirname(abspath(__file__)), 'private.py')):
+    from .private import *  # pylint: disable=import-error,wildcard-import

@@ -25,23 +25,6 @@ COURSEWARE_USE_LEGACY_FRONTEND = CourseWaffleFlag(
     WAFFLE_FLAG_NAMESPACE, 'use_legacy_frontend', __name__
 )
 
-# .. toggle_name: courseware.use_learning_sequences_api
-# .. toggle_implementation: CourseWaffleFlag
-# .. toggle_default: False
-# .. toggle_description: When enbled, frontend-app-learning's courseware pages should use the
-#   new Learning Sequences API (from ``openedx.core.djangoapps.content.learning_sequences``)
-#   instead of the Course Blocks API (from ``lms.djangoapps.course_api.blocks``)
-#   in order to load course structure data.
-# .. toggle_warnings: As of 2021-06-25, the frontend-app-learning changes necessary to honor this
-#   flag's value have not yet been implemented. We expect that they will be implemented in
-#   the coming weeks.
-# .. toggle_use_cases: temporary
-# .. toggle_creation_date: 2021-06-25
-# .. toggle_target_removal_date: 2021-09-01
-COURSEWARE_USE_LEARNING_SEQUENCES_API = CourseWaffleFlag(
-    WAFFLE_FLAG_NAMESPACE, 'use_learning_sequences_api', __name__
-)
-
 # .. toggle_name: courseware.microfrontend_course_team_preview
 # .. toggle_implementation: CourseWaffleFlag
 # .. toggle_default: False
@@ -102,6 +85,21 @@ COURSEWARE_MICROFRONTEND_PROGRESS_MILESTONES_STREAK_CELEBRATION = CourseWaffleFl
     WAFFLE_FLAG_NAMESPACE, 'mfe_progress_milestones_streak_celebration', __name__
 )
 
+# .. toggle_name: courseware.mfe_progress_milestones_streak_discount_enabled
+# .. toggle_implementation: CourseWaffleFlag
+# .. toggle_default: False
+# .. toggle_description: This flag enables an engagement discount incentive message.
+# .. toggle_warnings: This flag depends on the streak celebration feature being enabled
+# .. toggle_use_cases: opt_out, open_edx
+# .. toggle_creation_date: 2021-08-26
+# .. toggle_target_removal_date: None
+# .. toggle_tickets: https://openedx.atlassian.net/browse/AA-950
+COURSEWARE_MFE_MILESTONES_STREAK_DISCOUNT = CourseWaffleFlag(
+    WAFFLE_FLAG_NAMESPACE, 'streak_discount_enabled',
+    __name__,
+)
+
+
 # .. toggle_name: courseware.optimized_render_xblock
 # .. toggle_implementation: CourseWaffleFlag
 # .. toggle_default: False
@@ -115,64 +113,6 @@ COURSEWARE_MICROFRONTEND_PROGRESS_MILESTONES_STREAK_CELEBRATION = CourseWaffleFl
 COURSEWARE_OPTIMIZED_RENDER_XBLOCK = CourseWaffleFlag(
     WAFFLE_FLAG_NAMESPACE, 'optimized_render_xblock', __name__
 )
-
-# .. toggle_name: courseware.mfe_special_exams
-# .. toggle_implementation: CourseWaffleFlag
-# .. toggle_default: False
-# .. toggle_description: Waffle flag to enable special exams experience without
-#   redirecting students to LMS.
-# .. toggle_use_cases: temporary
-# .. toggle_creation_date: 2021-4-29
-# .. toggle_target_removal_date: 2021-6-30
-# .. toggle_warnings: None
-COURSEWARE_MICROFRONTEND_SPECIAL_EXAMS = CourseWaffleFlag(
-    WAFFLE_FLAG_NAMESPACE, 'mfe_special_exams', __name__
-)
-
-# .. toggle_name: courseware.mfe_proctored_exams
-# .. toggle_implementation: CourseWaffleFlag
-# .. toggle_default: False
-# .. toggle_description: Waffle flag to enable proctored exams experience without
-#   redirecting students to LMS.
-# .. toggle_use_cases: temporary
-# .. toggle_creation_date: 2021-5-24
-# .. toggle_target_removal_date: 2021-6-30
-# .. toggle_warnings: None
-COURSEWARE_MICROFRONTEND_PROCTORED_EXAMS = CourseWaffleFlag(
-    WAFFLE_FLAG_NAMESPACE, 'mfe_proctored_exams', __name__
-)
-
-
-def mfe_special_exams_is_active(course_key: CourseKey) -> bool:
-    """
-    Can we see a course special exams in the Learning MFE?
-    """
-    #Avoid circular imports.
-    from lms.djangoapps.courseware.access_utils import in_preview_mode
-    # DENY: Old Mongo courses don't work in the MFE.
-    if course_key.deprecated:
-        return False
-    # DENY: Course preview doesn't work in the MFE
-    if in_preview_mode():
-        return False
-    # OTHERWISE: Defer to value of waffle flag for this course run and user.
-    return COURSEWARE_MICROFRONTEND_SPECIAL_EXAMS.is_enabled(course_key)
-
-
-def mfe_proctored_exams_is_active(course_key: CourseKey) -> bool:
-    """
-    Can we see a course special exams in the Learning MFE?
-    """
-    #Avoid circular imports.
-    from lms.djangoapps.courseware.access_utils import in_preview_mode
-    # DENY: Old Mongo courses don't work in the MFE.
-    if course_key.deprecated:
-        return False
-    # DENY: Course preview doesn't work in the MFE
-    if in_preview_mode():
-        return False
-    # OTHERWISE: Defer to value of waffle flag for this course run and user.
-    return COURSEWARE_MICROFRONTEND_PROCTORED_EXAMS.is_enabled(course_key)
 
 
 def courseware_mfe_is_active(course_key: CourseKey) -> bool:

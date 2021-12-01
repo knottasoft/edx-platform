@@ -40,6 +40,8 @@ from lms.djangoapps.verify_student.models import VerificationDeadline
 from lms.djangoapps.verify_student.services import IDVerificationService
 from lms.djangoapps.verify_student.tests.factories import SSOVerificationFactory
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from openedx.features.content_type_gating.models import ContentTypeGatingConfig
+from openedx.features.course_duration_limits.models import CourseDurationLimitConfig
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase, SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 
@@ -646,7 +648,7 @@ class SupportViewLinkProgramEnrollmentsTests(SupportViewTestCase):
         '0001,learner-01,apple,orange\n0002,learner-02,purple',             # extra fields
         '\t0001        ,    \t  learner-01    \n   0002 , learner-02    ',  # whitespace
     )
-    @patch('lms.djangoapps.support.views.program_enrollments.link_program_enrollments')
+    @patch('lms.djangoapps.support.views.utils.link_program_enrollments')
     def test_text(self, text, mocked_link):
         self.client.post(self.url, data={
             'program_uuid': self.program_uuid,
@@ -1069,6 +1071,38 @@ class ProgramEnrollmentsInspectorViewTests(SupportViewTestCase):
         render_call_dict = mocked_render.call_args[0][1]
         assert expected_error == render_call_dict['error']
 
+    @patch_render
+    def test_search_external_user_case_insensitive(self, mocked_render):
+        external_user_key = 'AbCdEf123'
+        requested_external_user_key = 'aBcDeF123'
+
+        created_user, expected_user_info = self._construct_user(
+            'test_user_connected',
+            self.org_key_list[0],
+            external_user_key
+        )
+
+        expected_enrollments = self._construct_enrollments(
+            [self.program_uuid],
+            [self.course.id],
+            external_user_key,
+            created_user
+        )
+        id_verified = self._construct_id_verification(created_user)
+
+        self.client.get(self.url, data={
+            'external_user_key': requested_external_user_key,
+            'org_key': self.org_key_list[0]
+        })
+        expected_info = {
+            'user': expected_user_info,
+            'enrollments': expected_enrollments,
+            'id_verification': id_verified,
+        }
+
+        render_call_dict = mocked_render.call_args[0][1]
+        assert expected_info == render_call_dict['learner_program_enrollments']
+
 
 class SsoRecordsTests(SupportViewTestCase):  # lint-amnesty, pylint: disable=missing-class-docstring
 
@@ -1112,3 +1146,226 @@ class SsoRecordsTests(SupportViewTestCase):  # lint-amnesty, pylint: disable=mis
         assert response.status_code == 200
         assert len(data) == 1
         self.assertContains(response, '"uid": "test@example.com"')
+
+
+class FeatureBasedEnrollmentSupportApiViewTests(SupportViewTestCase):
+    """
+    Test suite for FBE Support API view.
+    """
+    def setUp(self):
+        super().setUp()
+        SupportStaffRole().add_users(self.user)
+
+    def test_fbe_enabled_response(self):
+        """
+        Test the response for the api view when the gating and duration configs
+        are enabled.
+        """
+        for course_mode in [CourseMode.AUDIT, CourseMode.VERIFIED]:
+            CourseModeFactory.create(mode_slug=course_mode, course_id=self.course.id)
+        ContentTypeGatingConfig.objects.create(enabled=True, enabled_as_of=datetime(2018, 1, 1))
+        CourseDurationLimitConfig.objects.create(enabled=True, enabled_as_of=datetime(2018, 1, 1))
+
+        response = self.client.get(
+            reverse("support:feature_based_enrollment_details", kwargs={'course_id': str(self.course.id)})
+        )
+        data = json.loads(response.content.decode('utf-8'))
+        gating_config = data['gating_config']
+        duration_config = data['duration_config']
+
+        assert str(self.course.id) == data['course_id']
+        assert gating_config['enabled']
+        assert gating_config['enabled_as_of'] == '2018-01-01 00:00:00+00:00'
+        assert duration_config['enabled']
+        assert duration_config['enabled_as_of'] == '2018-01-01 00:00:00+00:00'
+
+    def test_fbe_disabled_response(self):
+        """
+        Test the FBE support api view response to be empty when no gating and duration
+        config is present.
+        """
+        response = self.client.get(
+            reverse("support:feature_based_enrollment_details", kwargs={'course_id': str(self.course.id)})
+        )
+        data = json.loads(response.content.decode('utf-8'))
+        assert data == {}
+
+
+@ddt.ddt
+class LinkProgramEnrollmentSupportAPIViewTests(SupportViewTestCase):
+    """
+    Tests for the link_program_enrollments support view.
+    """
+    _url = reverse("support:link_program_enrollments_details")
+
+    def setUp(self):
+        """
+        Make the user support staff.
+        """
+        super().setUp()
+        SupportStaffRole().add_users(self.user)
+        self.program_uuid = str(uuid4())
+        self.username_pair_text = '0001,user-0001\n0002,user-02'
+
+    def _setup_user_from_username(self, username):
+        """
+        Setup a user from the passed in username.
+        If username passed in is falsy, return None
+        """
+        created_user = None
+        if username:
+            created_user = UserFactory(username=username, password=self.PASSWORD)
+        return created_user
+
+    def _setup_enrollments(self, external_user_key, linked_user=None):
+        """
+        Create enrollments for testing linking.
+        The enrollments can be created with already linked edX user.
+        """
+        program_enrollment = ProgramEnrollmentFactory.create(
+            external_user_key=external_user_key,
+            program_uuid=self.program_uuid,
+            user=linked_user
+        )
+        course_enrollment = None
+        if linked_user:
+            course_enrollment = CourseEnrollmentFactory.create(
+                course_id=self.course.id,
+                user=linked_user,
+                mode=CourseMode.MASTERS,
+                is_active=True
+            )
+        program_course_enrollment = ProgramCourseEnrollmentFactory.create(
+            program_enrollment=program_enrollment,
+            course_key=self.course.id,
+            course_enrollment=course_enrollment,
+            status='active'
+        )
+        return program_enrollment, program_course_enrollment
+
+    def test_invalid_uuid(self):
+        """
+        Tests if enrollment linkages are refused for an invalid uuid
+        """
+        response = self.client.post(self._url, data={
+            'program_uuid': 'notauuid',
+            'username_pair_text': self.username_pair_text,
+        })
+        msg = "Supplied program UUID 'notauuid' is not a valid UUID."
+        data = json.loads(response.content.decode('utf-8'))
+        assert data['errors'] == [msg]
+
+    @ddt.data(
+        ('program_uuid', ''),
+        ('', 'username_pair_text'),
+        ('', '')
+    )
+    @ddt.unpack
+    def test_missing_parameter(self, program_uuid, username_pair_text):
+        """
+        Tests if enrollment linkages are refused for missing parameters
+        """
+        error = (
+            "You must provide both a program uuid "
+            "and a series of lines with the format "
+            "'external_user_key,lms_username'."
+        )
+        response = self.client.post(self._url, data={
+            'program_uuid': program_uuid,
+            'username_pair_text': username_pair_text
+        })
+        response_data = json.loads(response.content.decode('utf-8'))
+        assert response_data['errors'] == [error]
+
+    @ddt.data(
+        '0001,learner-01\n0002,learner-02',                                 # normal
+        '0001,learner-01,apple,orange\n0002,learner-02,purple',             # extra fields
+        '\t0001        ,    \t  learner-01    \n   0002 , learner-02    ',  # whitespace
+    )
+    @patch('lms.djangoapps.support.views.utils.link_program_enrollments')
+    def test_username_pair_text(self, username_pair_text, mocked_link):
+        """
+        Tests if enrollment linkages are created for different types of
+        username_pair_text format
+        """
+        response = self.client.post(self._url, data={
+            'program_uuid': self.program_uuid,
+            'username_pair_text': username_pair_text,
+        })
+        response_data = json.loads(response.content.decode('utf-8'))
+        mocked_link.assert_called_once()
+        mocked_link.assert_called_with(
+            UUID(self.program_uuid),
+            {
+                '0001': 'learner-01',
+                '0002': 'learner-02',
+            }
+        )
+        success = ["('0001', 'learner-01')", "('0002', 'learner-02')"]
+        assert response_data['successes'] == success
+        mocked_link.reset_mock()
+
+    def test_invalid_username_pair_text(self):
+        """
+        Tests if enrollment linkages are refused for invalid types of
+        username_pair_text format
+        """
+        username_pair_text = 'garbage_text'
+        response = self.client.post(self._url, data={
+            'program_uuid': self.program_uuid,
+            'username_pair_text': username_pair_text,
+        })
+        msg = "All linking lines must be in the format 'external_user_key,lms_username'"
+        response_data = json.loads(response.content.decode('utf-8'))
+        assert response_data['errors'] == [msg]
+
+    @ddt.data(
+        ('linked_user', None),
+        ('linked_user', 'original_user')
+    )
+    @ddt.unpack
+    def test_linking_program_enrollment_with_username(self, username, original_username):
+        """
+        Tests if enrollment linkages are created for valid usernames
+        """
+        external_user_key = '0001'
+        linked_user = self._setup_user_from_username(username)
+        original_user = self._setup_user_from_username(original_username)
+        program_enrollment, program_course_enrollment = self._setup_enrollments(
+            external_user_key,
+            original_user
+        )
+        response = self.client.post(self._url, data={
+            'program_uuid': self.program_uuid,
+            'username_pair_text': external_user_key + ',' + username
+        })
+        response_data = json.loads(response.content.decode('utf-8'))
+        expected_success = f"('{external_user_key}', '{username}')"
+        assert response_data['successes'] == [expected_success]
+        program_enrollment.refresh_from_db()
+        assert program_enrollment.user == linked_user
+        program_course_enrollment.refresh_from_db()
+        assert program_course_enrollment.course_enrollment.user == linked_user
+
+    @ddt.data(
+        ('', None),
+    )
+    @ddt.unpack
+    def test_linking_program_enrollment_without_username(self, username, original_username):
+        """
+        Tests if enrollment linkages are refused for invalid usernames
+        """
+        external_user_key = '0001'
+        linked_user = self._setup_user_from_username(username)
+        original_user = self._setup_user_from_username(original_username)
+        program_enrollment, program_course_enrollment = self._setup_enrollments(
+            external_user_key,
+            original_user
+        )
+        response = self.client.post(self._url, data={
+            'program_uuid': self.program_uuid,
+            'username_pair_text': external_user_key + ',' + username
+        })
+        response_data = json.loads(response.content.decode('utf-8'))
+        error = "All linking lines must be in the format 'external_user_key,lms_username'"
+        assert response_data['errors'] == [error]

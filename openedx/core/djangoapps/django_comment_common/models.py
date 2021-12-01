@@ -10,8 +10,8 @@ from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imp
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.translation import ugettext_noop
+
+from django.utils.translation import gettext_noop
 from jsonfield.fields import JSONField
 from opaque_keys.edx.django.models import CourseKeyField
 
@@ -22,11 +22,11 @@ from common.djangoapps.student.roles import GlobalStaff
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.exceptions import ItemNotFoundError
 
-FORUM_ROLE_ADMINISTRATOR = ugettext_noop('Administrator')
-FORUM_ROLE_MODERATOR = ugettext_noop('Moderator')
-FORUM_ROLE_GROUP_MODERATOR = ugettext_noop('Group Moderator')
-FORUM_ROLE_COMMUNITY_TA = ugettext_noop('Community TA')
-FORUM_ROLE_STUDENT = ugettext_noop('Student')
+FORUM_ROLE_ADMINISTRATOR = gettext_noop('Administrator')
+FORUM_ROLE_MODERATOR = gettext_noop('Moderator')
+FORUM_ROLE_GROUP_MODERATOR = gettext_noop('Group Moderator')
+FORUM_ROLE_COMMUNITY_TA = gettext_noop('Community TA')
+FORUM_ROLE_STUDENT = gettext_noop('Student')
 
 
 @receiver(post_save, sender=CourseEnrollment)
@@ -68,7 +68,6 @@ def assign_role(course_id, user, rolename):
     user.roles.add(role)
 
 
-@python_2_unicode_compatible
 class Role(models.Model):
     """
     Maps users to django_comment_client roles for a given course
@@ -128,7 +127,6 @@ class Role(models.Model):
         return Role.objects.filter(course_id=course_id, name__in=role_names, users=user).exists()
 
 
-@python_2_unicode_compatible
 class Permission(models.Model):
     """
     Permissions for django_comment_client
@@ -195,7 +193,6 @@ def all_permissions_for_user_in_course(user, course_id):
     return permission_names
 
 
-@python_2_unicode_compatible
 class ForumsConfig(ConfigurationModel):
     """
     Config for the connection to the cs_comments_service forums backend.

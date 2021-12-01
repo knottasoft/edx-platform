@@ -30,7 +30,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 from eventtracking import tracker
@@ -49,7 +49,6 @@ from xmodule.modulestore.django import modulestore
 from ..exceptions import AssetNotFoundException
 from ..utils import (
     get_lms_link_for_certificate_web_view,
-    get_pages_and_resources_url,
     get_proctored_exam_settings_url,
     reverse_course_url
 )
@@ -430,7 +429,6 @@ def certificates_list_handler(request, course_key_string):
                 'is_global_staff': GlobalStaff().has_user(request.user),
                 'certificate_activation_handler_url': activation_handler_url,
                 'mfe_proctored_exam_settings_url': get_proctored_exam_settings_url(course.id),
-                'pages_and_resources_mfe_link': get_pages_and_resources_url(course.id),
             })
         elif "application/json" in request.META.get('HTTP_ACCEPT'):
             # Retrieve the list of certificates for the specified course

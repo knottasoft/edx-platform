@@ -255,7 +255,7 @@ class ResetPasswordTests(EventTestMixin, CacheIsolationTestCase):
 
     @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', "Test only valid in LMS")
     @ddt.data(('plain_text', "You're receiving this e-mail because you requested a password reset"),
-              ('html', "You&#39;re receiving this e-mail because you requested a password reset"))
+              ('html', "You&#x27;re receiving this e-mail because you requested a password reset"))
     @ddt.unpack
     def test_reset_password_email(self, body_type, expected_output):
         """Tests contents of reset password email, and that user is not active"""
@@ -710,8 +710,8 @@ class PasswordResetViewTest(UserAPITestCase):
         assert form_desc['method'] == 'post'
         assert form_desc['submit_url'] == reverse('password_change_request')
         assert form_desc['fields'] ==\
-               [{'name': 'email', 'defaultValue': '', 'type': 'email', 'required': True,
-                 'label': 'Email', 'placeholder': 'username@domain.com',
+               [{'name': 'email', 'defaultValue': '', 'type': 'email', 'exposed': True,
+                 'required': True, 'label': 'Email', 'placeholder': 'username@domain.com',
                  'instructions': 'The email address you used to register with {platform_name}'
                 .format(platform_name=settings.PLATFORM_NAME),
                  'restrictions': {'min_length': EMAIL_MIN_LENGTH,

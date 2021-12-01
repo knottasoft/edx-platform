@@ -22,11 +22,11 @@ from django.shortcuts import redirect
 from django.template.context_processors import csrf
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.utils.http import urlquote_plus
+from urllib.parse import quote_plus
 from django.utils.text import slugify
-from django.utils.translation import ugettext
-from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import ugettext_noop
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_noop
 from django.views.decorators.cache import cache_control
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -54,6 +54,7 @@ from lms.djangoapps.ccx.custom_exception import CCXLocatorValidationException
 from lms.djangoapps.certificates import api as certs_api
 from lms.djangoapps.certificates.data import CertificateStatuses
 from lms.djangoapps.commerce.utils import EcommerceService
+from lms.djangoapps.course_goals.models import UserActivity
 from lms.djangoapps.course_home_api.toggles import (
     course_home_legacy_is_active,
     course_home_mfe_progress_tab_is_active
@@ -77,7 +78,7 @@ from lms.djangoapps.courseware.courses import (
 )
 from lms.djangoapps.courseware.date_summary import verified_upgrade_deadline_link
 from lms.djangoapps.courseware.exceptions import CourseAccessRedirect, Redirect
-from lms.djangoapps.courseware.masquerade import setup_masquerade
+from lms.djangoapps.courseware.masquerade import setup_masquerade, is_masquerading_as_specific_student
 from lms.djangoapps.courseware.model_data import FieldDataCache
 from lms.djangoapps.courseware.models import BaseStudentModuleHistory, StudentModule
 from lms.djangoapps.courseware.permissions import (  # lint-amnesty, pylint: disable=unused-import
@@ -95,7 +96,6 @@ from lms.djangoapps.instructor.enrollment import uses_shib
 from lms.djangoapps.instructor.views.api import require_global_staff
 from lms.djangoapps.verify_student.services import IDVerificationService
 from openedx.core.djangoapps.catalog.utils import get_programs, get_programs_with_type
-from openedx.core.djangoapps.certificates import api as auto_certs_api
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from openedx.core.djangoapps.credit.api import (
     get_credit_requirement_status,
@@ -125,10 +125,10 @@ from openedx.features.course_experience.waffle import waffle as course_experienc
 from openedx.features.enterprise_support.api import data_sharing_consent_required
 from common.djangoapps.student.models import CourseEnrollment, UserTestGroup
 from common.djangoapps.util.cache import cache, cache_if_anonymous
+from common.djangoapps.util.course import course_location_from_key
 from common.djangoapps.util.db import outer_atomic
 from common.djangoapps.util.milestones_helpers import get_prerequisite_courses_display
 from common.djangoapps.util.views import ensure_valid_course_key, ensure_valid_usage_key
-from xmodule.contentstore.utils import course_location_from_key
 from xmodule.course_module import COURSE_VISIBILITY_PUBLIC, COURSE_VISIBILITY_PUBLIC_OUTLINE
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.exceptions import ItemNotFoundError, NoPathToItem
@@ -680,11 +680,11 @@ class CourseTabView(EdxFragmentView):
                     Text(_("To see course content, {sign_in_link} or {register_link}.")).format(
                         sign_in_link=HTML('<a href="/login?next={current_url}">{sign_in_label}</a>').format(
                             sign_in_label=_("sign in"),
-                            current_url=urlquote_plus(request.path),
+                            current_url=quote_plus(request.path),
                         ),
                         register_link=HTML('<a href="/register?next={current_url}">{register_label}</a>').format(
                             register_label=_("register"),
-                            current_url=urlquote_plus(request.path),
+                            current_url=quote_plus(request.path),
                         ),
                     ),
                     once_only=True
@@ -695,11 +695,11 @@ class CourseTabView(EdxFragmentView):
                     Text(_("{sign_in_link} or {register_link}.")).format(
                         sign_in_link=HTML('<a href="/login?next={current_url}">{sign_in_label}</a>').format(
                             sign_in_label=_("Sign in"),
-                            current_url=urlquote_plus(request.path),
+                            current_url=quote_plus(request.path),
                         ),
                         register_link=HTML('<a href="/register?next={current_url}">{register_label}</a>').format(
                             register_label=_("register"),
-                            current_url=urlquote_plus(request.path),
+                            current_url=quote_plus(request.path),
                         ),
                     )
                 )
@@ -707,8 +707,10 @@ class CourseTabView(EdxFragmentView):
             if not CourseEnrollment.is_enrolled(request.user, course.id) and not allow_anonymous:
                 # Only show enroll button if course is open for enrollment.
                 if CourseTabView.course_open_for_learner_enrollment(course):
-                    enroll_message = _('You must be enrolled in the course to see course content. \
-                            {enroll_link_start}Enroll now{enroll_link_end}.')
+                    enroll_message = _(
+                        'You must be enrolled in the course to see course content. '
+                        '{enroll_link_start}Enroll now{enroll_link_end}.'
+                    )
                     PageLevelMessages.register_warning_message(
                         request,
                         Text(enroll_message).format(
@@ -931,7 +933,10 @@ def course_about(request, course_id):
         studio_url = get_studio_url(course, 'settings/details')
 
         if request.user.has_perm(VIEW_COURSE_HOME, course):
-            course_target = reverse(course_home_url_name(course.id), args=[str(course.id)])
+            if course_home_legacy_is_active(course.id):
+                course_target = reverse(course_home_url_name(course.id), args=[str(course.id)])
+            else:
+                course_target = get_learning_mfe_home_url(course_key=course.id, view_name='home')
         else:
             course_target = reverse('about_course', args=[str(course.id)])
 
@@ -1289,14 +1294,14 @@ def get_cert_data(student, course, enrollment_mode, course_grade=None):
     if cert_data.cert_status == EARNED_BUT_NOT_AVAILABLE_CERT_STATUS:
         return cert_data
 
-    certificates_enabled_for_course = certs_api.cert_generation_enabled(course.id)
+    certificates_enabled_for_course = certs_api.has_self_generated_certificates_enabled(course.id)
     if course_grade is None:
         course_grade = CourseGradeFactory().read(student, course)
 
-    if not auto_certs_api.can_show_certificate_message(course, student, course_grade, certificates_enabled_for_course):
+    if not certs_api.can_show_certificate_message(course, student, course_grade, certificates_enabled_for_course):
         return
 
-    if not certs_api.get_active_web_certificate(course) and not auto_certs_api.is_valid_pdf_certificate(cert_data):
+    if not certs_api.get_active_web_certificate(course) and not certs_api.is_valid_pdf_certificate(cert_data):
         return
 
     return cert_data
@@ -1610,17 +1615,13 @@ def generate_user_cert(request, course_id):
 
     student = request.user
     course_key = CourseKey.from_string(course_id)
-    use_v1_certs = True
 
     course = modulestore().get_course(course_key, depth=2)
     if not course:
         return HttpResponseBadRequest(_("Course is not valid"))
 
-    if certs_api.can_generate_certificate_task(student, course_key):
-        log.info(f'{course_key} is using V2 certificates. Attempt will be made to generate a V2 certificate for '
-                 f'user {student.id}.')
-        use_v1_certs = False
-        certs_api.generate_certificate_task(student, course_key, 'self')
+    log.info(f'Attempt will be made to generate a course certificate for {student.id} : {course_key}.')
+    certs_api.generate_certificate_task(student, course_key, 'self')
 
     if not is_course_passed(student, course):
         log.info("User %s has not passed the course: %s", student.username, course_id)
@@ -1640,14 +1641,6 @@ def generate_user_cert(request, course_id):
         return HttpResponseBadRequest(_("Certificate has already been created."))
     elif certificate_status["is_generating"]:
         return HttpResponseBadRequest(_("Certificate is being created."))
-    elif use_v1_certs:
-        # If the certificate is not already in-process or completed,
-        # then create a new certificate generation task.
-        # If the certificate cannot be added to the queue, this will
-        # mark the certificate with "error" status, so it can be re-run
-        # with a management command.  From the user's perspective,
-        # it will appear that the certificate task was submitted successfully.
-        certs_api.generate_user_certificates(student, course.id, generation_mode='self')
 
     return HttpResponse()
 
@@ -1743,6 +1736,11 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
             staff_access,
         )
 
+        # Record user activity for tracking progress towards a user's course goals (for mobile app)
+        UserActivity.record_user_activity(
+            request.user, usage_key.course_key, request=request, only_if_mobile_app=True
+        )
+
         # get the block, which verifies whether the user has access to the block.
         recheck_access = request.GET.get('recheck_access') == '1'
         block, _ = get_module_by_usage_id(
@@ -1760,6 +1758,8 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
         # If other use cases appear, consider removing the is_learning_mfe check or switching this
         # to be its own query parameter that can toggle the behavior.
         student_view_context['hide_access_error_blocks'] = is_learning_mfe and recheck_access
+        is_mobile_app = is_request_from_mobile_app(request)
+        student_view_context['is_mobile_app'] = is_mobile_app
 
         enable_completion_on_view_service = False
         completion_service = block.runtime.service(block, 'completion')
@@ -1776,9 +1776,10 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
         # timed exam started?").
         ancestor_sequence_block = enclosing_sequence_for_gating_checks(block)
         if ancestor_sequence_block:
+            context = {'specific_masquerade': is_masquerading_as_specific_student(request.user, course_key)}
             # If the SequenceModule feels that gating is necessary, redirect
             # there so we can have some kind of error message at any rate.
-            if ancestor_sequence_block.descendants_are_gated():
+            if ancestor_sequence_block.descendants_are_gated(context):
                 return redirect(
                     reverse(
                         'render_xblock',
@@ -1808,8 +1809,9 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
             'on_courseware_page': True,
             'verified_upgrade_link': verified_upgrade_deadline_link(request.user, course=course),
             'is_learning_mfe': is_learning_mfe,
-            'is_mobile_app': is_request_from_mobile_app(request),
+            'is_mobile_app': is_mobile_app,
             'reset_deadlines_url': reverse(RESET_COURSE_DEADLINES_NAME),
+            'render_course_wide_assets': True,
 
             **optimization_flags,
         }
@@ -1905,11 +1907,11 @@ def _get_fa_header(header):
                platform_name=configuration_helpers.get_value('PLATFORM_NAME', settings.PLATFORM_NAME)).split('\n')
 
 
-FA_INCOME_LABEL = ugettext_noop('Annual Household Income')
-FA_REASON_FOR_APPLYING_LABEL = ugettext_noop('Tell us about your current financial situation. Why do you need assistance?')  # lint-amnesty, pylint: disable=line-too-long
-FA_GOALS_LABEL = ugettext_noop('Tell us about your learning or professional goals. How will a Verified Certificate in this course help you achieve these goals?')  # lint-amnesty, pylint: disable=line-too-long
+FA_INCOME_LABEL = gettext_noop('Annual Household Income')
+FA_REASON_FOR_APPLYING_LABEL = gettext_noop('Tell us about your current financial situation. Why do you need assistance?')  # lint-amnesty, pylint: disable=line-too-long
+FA_GOALS_LABEL = gettext_noop('Tell us about your learning or professional goals. How will a Verified Certificate in this course help you achieve these goals?')  # lint-amnesty, pylint: disable=line-too-long
 
-FA_EFFORT_LABEL = ugettext_noop('Tell us about your plans for this course. What steps will you take to help you complete the course work and receive a certificate?')  # lint-amnesty, pylint: disable=line-too-long
+FA_EFFORT_LABEL = gettext_noop('Tell us about your plans for this course. What steps will you take to help you complete the course work and receive a certificate?')  # lint-amnesty, pylint: disable=line-too-long
 
 FA_SHORT_ANSWER_INSTRUCTIONS = _('Use between 1250 and 2500 characters or so in your response.')
 
@@ -2024,7 +2026,7 @@ def financial_assistance_form(request):
                 'defaultValue': '',
                 'required': True,
                 'options': enrolled_courses,
-                'instructions': ugettext(
+                'instructions': gettext(
                     'Select the course for which you want to earn a verified certificate. If'
                     ' the course does not appear in the list, make sure that you have enrolled'
                     ' in the audit track for the course.'
@@ -2083,9 +2085,9 @@ def financial_assistance_form(request):
                 'placeholder': '',
                 'name': 'mktg-permission',
                 'label': _(
-                    'I allow edX to use the information provided in this application '
-                    '(except for financial information) for edX marketing purposes.'
-                ),
+                    'I allow {platform_name} to use the information provided in this application '
+                    '(except for financial information) for {platform_name} marketing purposes.'
+                ).format(platform_name=settings.PLATFORM_NAME),
                 'defaultValue': '',
                 'type': 'checkbox',
                 'required': False,

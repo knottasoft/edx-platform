@@ -15,8 +15,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseServerError
 from django.urls import reverse
 from django.utils.html import escape
-from django.utils.translation import ugettext as _
-from django.utils.translation import ugettext_noop
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_noop
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
@@ -49,10 +49,11 @@ from lms.djangoapps.certificates.models import (
 from lms.djangoapps.courseware.access import has_access
 from lms.djangoapps.courseware.courses import get_studio_url
 from lms.djangoapps.courseware.module_render import get_module_by_usage_id
-from lms.djangoapps.discussion.django_comment_client.utils import available_division_schemes, has_forum_access
+from lms.djangoapps.discussion.django_comment_client.utils import has_forum_access
 from lms.djangoapps.grades.api import is_writable_gradebook_enabled
 from openedx.core.djangoapps.course_groups.cohorts import DEFAULT_COHORT_NAME, get_course_cohorts, is_course_cohorted
 from openedx.core.djangoapps.discussions.config.waffle_utils import legacy_discussion_experience_enabled
+from openedx.core.djangoapps.discussions.utils import available_division_schemes
 from openedx.core.djangoapps.django_comment_common.models import FORUM_ROLE_ADMINISTRATOR, CourseDiscussionSettings
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 from openedx.core.djangoapps.verified_track_content.models import VerifiedTrackCohortedCourse
@@ -77,9 +78,10 @@ class InstructorDashboardTab(CourseTab):
     """
 
     type = "instructor"
-    title = ugettext_noop('Instructor')
+    title = gettext_noop('Instructor')
     view_name = "instructor_dashboard"
     is_dynamic = True    # The "Instructor" tab is instead dynamically added when it is enabled
+    priority = 300
 
     @classmethod
     def is_enabled(cls, course, user=None):
@@ -127,10 +129,6 @@ def instructor_dashboard_2(request, course_id):  # lint-amnesty, pylint: disable
 
     if not request.user.has_perm(permissions.VIEW_DASHBOARD, course_key):
         raise Http404()
-
-    is_white_label = CourseMode.is_white_label(course_key)  # lint-amnesty, pylint: disable=unused-variable
-
-    reports_enabled = configuration_helpers.get_value('SHOW_ECOMMERCE_REPORTS', False)  # lint-amnesty, pylint: disable=unused-variable
 
     sections = []
     if access['staff']:
@@ -330,7 +328,7 @@ def _section_certificates(course):
         'section_display_name': _('Certificates'),
         'example_certificate_status': example_cert_status,
         'can_enable_for_course': can_enable_for_course,
-        'enabled_for_course': certs_api.cert_generation_enabled(course.id),
+        'enabled_for_course': certs_api.has_self_generated_certificates_enabled(course.id),
         'is_self_paced': course.self_paced,
         'instructor_generation_enabled': instructor_generation_enabled,
         'html_cert_enabled': html_cert_enabled,
@@ -340,10 +338,6 @@ def _section_certificates(course):
         'certificate_generation_history':
             CertificateGenerationHistory.objects.filter(course_id=course.id).order_by("-created"),
         'urls': {
-            'generate_example_certificates': reverse(
-                'generate_example_certificates',
-                kwargs={'course_id': course.id}
-            ),
             'enable_certificate_generation': reverse(
                 'enable_certificate_generation',
                 kwargs={'course_id': course.id}
