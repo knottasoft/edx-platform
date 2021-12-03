@@ -1,7 +1,8 @@
 import requests
+from django.conf import settings
 
-BASE_URL = "http://web:8000/api/v1"
-REFRESH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTYzNjEzNjg0MywianRpIjoiYzFjMjBmMGNkNjQ5NGY1ZmE2YTY4NzMxNjI5NGNkNDciLCJ1c2VyX2lkIjoiMzcyYjE5M2YtYWQ2NC00MGE2LTgwYjItNmRkMmE3MWNkMjRmIn0.j7vHt1EM5cjsif6h9dS8J7ebZ1zdGlmfGUmbq0xBH7k"
+BASE_URL = settings.COPP_API_URL
+REFRESH_TOKEN = settings.COPP_API_REFRESH_TOKEN
 
 class Api():
 
