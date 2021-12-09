@@ -85,7 +85,7 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
       >
 <article class="course${mode_class}" aria-labelledby="course-title-${enrollment.course_id}" id="course-card-${course_card_index}">
   <% course_target = reverse(course_home_url_name(course_overview.id), args=[str(course_overview.id)]) if course_home_legacy_is_active(course_overview.id) else get_learning_mfe_home_url(course_key=course_overview.id, view_name="home") %>
-  <section class="details" aria-labelledby="details-heading-${enrollment.course_id}">
+  <section class="details mb-3" aria-labelledby="details-heading-${enrollment.course_id}">
       <h2 class="hd hd-2 sr" id="details-heading-${enrollment.course_id}">${_('Course details')}</h2>
     <div class="wrapper-course-image" aria-hidden="true">
       % if show_courseware_link and not is_unfulfilled_entitlement:
@@ -123,151 +123,231 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
                       <a class="disable-look text-brand-main" data-course-key="${enrollment.course_id}">${course_overview.display_name_with_default}</a>
                     % endif
                   % else:
-                    <span class="text-brand-main">${course_overview.display_name_with_default}</span>
+                    <span text-brand-main>${course_overview.display_name_with_default}</span>
                   % endif
               </h3>
-              <div class="dropdown pt-2">
-                  <div class="d-flex align-items-center justify-content-center dropdown-toggle remove-arrow" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <img class="rounded-circle p-2" src="static/images/brand/icon-more.svg" style="background-color: #F6F7FA;" />
-                  </div>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-<!--                      % if entitlement and (can_refund_entitlement or show_email_settings):-->
-<!--                        <%include file='_dashboard_entitlement_actions.html' args='course_overview=course_overview,entitlement=entitlement,dashboard_index=dashboard_index, can_refund_entitlement=can_refund_entitlement, show_email_settings=show_email_settings'/>-->
-<!--                      % elif not entitlement:-->
-                        % if can_unenroll:
-                            <% course_refund_url = reverse('course_run_refund_status', args=[six.text_type(course_overview.id)]) %>
-                            <a id="actions-item-unenroll-${dashboard_index}" href="#unenroll-modal" class="dropdown-item" rel="leanModal"
-                                data-course-id="${course_overview.id}"
-                                data-course-number="${course_overview.number}"
-                                data-course-name="${course_overview.display_name_with_default}"
-                                data-dashboard-index="${dashboard_index}"
-                                data-course-refund-url="${course_refund_url}"
-                                data-course-is-paid-course="${is_paid_course}"
-                                data-is-course-voucher-refundable="${is_course_voucher_refundable}"
-                                data-course-cert-name-long="${cert_name_long}"
-                                data-course-enrollment-mode="${enrollment.mode}"
-                            >${_('Unenroll')}
-                            </a>
-                        % elif partner_managed_enrollment:
-                            <a class="dropdown-item" href="#" id="actions-item-enrolled-by-partner-${dashboard_index}">
-                                ${_('You are enrolled by your institution and you should reach out to your institution to drop this course.')}
-                            </a>
+              <div class="wrapper-course-actions">
+                  <div class="course-actions">
+                        % if show_courseware_link or course_overview.has_social_sharing_url() or course_overview.has_marketing_url():
+                            % if share_settings:
+                                <%
+                                  share_url = get_link_for_about_page(course_overview)
+                                  encoded_utm_parameters = get_encoded_course_sharing_utm_params()
+                                  share_window_name = 'shareWindow'
+                                  share_window_config = 'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=640, height=480'
+                                %>
+                                % if share_settings.get('DASHBOARD_FACEBOOK', False):
+                                    <%
+                                      facebook_share_url = u"{url}?{utm_params}".format(url=share_url, utm_params=encoded_utm_parameters['facebook'])
+                                      share_text = _("I'm taking {course_name} online with {facebook_brand}. Check it out!").format(course_name=course_overview.display_name_with_default, facebook_brand=share_settings.get('FACEBOOK_BRAND', 'edX.org'))
+                                      query_params = urlencode((('u', facebook_share_url), ('quote', share_text),))
+                                      facebook_url = 'https://www.facebook.com/sharer/sharer.php?{query}'.format(query=query_params)
+                                      share_msg = _("Share {course_name} on Facebook").format(course_name=course_overview.display_name_with_default)
+                                    %>
+                                    <a
+                                      data-tooltip="${_('Share on Facebook')}"
+                                      data-trigger="focus hover"
+                                      class="action action-facebook"
+                                      href="${facebook_url}"
+                                      rel="noopener"
+                                      target="_blank"
+                                      title="${_('Share on Facebook')}"
+                                      data-course-id="${course_overview.id}"
+                                      onclick="var popupWindow = window.open('${facebook_url}', '${share_window_name}', '${share_window_config}'); popupWindow.opener = null; return false;">
+                                      <span class="sr">${share_msg}</span>
+                                      <span class="fa fa-facebook" aria-hidden="true"></span>
+                                    </a>
+                                % endif
+                                % if share_settings.get('DASHBOARD_TWITTER', False):
+                                    <%
+                                      twitter_share_url = u"{url}?{utm_params}".format(url=share_url, utm_params=encoded_utm_parameters['twitter'])
+                                      default_share_text = _("I'm taking {course_name} online with {twitter_brand}. Check it out!").format(course_name=course_overview.display_name_with_default, twitter_brand=share_settings.get('TWITTER_BRAND', '@edxonline'))
+                                      share_text = urlquote_plus(share_settings.get('DASHBOARD_TWITTER_TEXT', default_share_text))
+                                      twitter_url = u'https://twitter.com/intent/tweet?text=' + share_text + u'%20' + urlquote_plus(twitter_share_url)
+                                      share_msg = _("Share {course_name} on Twitter").format(course_name=course_overview.display_name_with_default)
+                                    %>
+                                    <a
+                                      data-tooltip="${_('Share on Twitter')}"
+                                      data-trigger="focus hover"
+                                      class="action action-twitter"
+                                      href="${twitter_url}"
+                                      rel="noopener"
+                                      target="_blank"
+                                      title="${_('Share on Twitter')}"
+                                      data-course-id="${course_overview.id}"
+                                      onclick="var popupWindow = window.open('${twitter_url}', '${share_window_name}', '${share_window_config}'); popupWindow.opener = null; return false;">
+                                      <span class="sr">${share_msg}</span>
+                                      <span class="fa fa-twitter" aria-hidden="true"></span>
+                                    </a>
+                                % endif
+                            % endif
                         % endif
-                        % if show_email_settings:
-                            <a href="#email-settings-modal"
-                               class="dropdown-item"
-                               rel="leanModal"
-                               data-course-id="${course_overview.id}"
-                               data-course-number="${course_overview.number}"
-                               data-dashboard-index="${dashboard_index}"
-                               data-optout="${course_overview.id in course_optouts}"
-                            >${_('Email Settings')}
-                            </a>
+
+                        ## We should only show the gear dropdown if the user is able to refund/unenroll from their entitlement
+                        ## and/or if they have selected a course run and email_settings are enabled
+                        ## as these are the only actions currently available
+                        % if entitlement and (can_refund_entitlement or show_email_settings):
+                            <%include file='_dashboard_entitlement_actions.html' args='course_overview=course_overview,entitlement=entitlement,dashboard_index=dashboard_index, can_refund_entitlement=can_refund_entitlement, show_email_settings=show_email_settings'/>
+                        % elif not entitlement:
+                            <div class="dropdown pt-2" data-course-key="${enrollment.course_id}">
+                                <div class="d-flex align-items-center justify-content-center dropdown-toggle remove-arrow" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img type="button" class="action action-more rounded-circle p-2" src="static/images/brand/icon-more.svg" style="background-color: #F6F7FA;" id="actions-dropdown-link-${dashboard_index}" aria-haspopup="true" aria-expanded="false" aria-controls="actions-dropdown-${dashboard_index}" data-course-number="${course_overview.number}" data-course-name="${course_overview.display_name_with_default}" data-dashboard-index="${dashboard_index}"/>
+                                </div>
+<!--                              <button type="button" class="action action-more btn-outline-success" id="actions-dropdown-link-${dashboard_index}" aria-haspopup="true" aria-expanded="false" aria-controls="actions-dropdown-${dashboard_index}" data-course-number="${course_overview.number}" data-course-name="${course_overview.display_name_with_default}" data-dashboard-index="${dashboard_index}">-->
+<!--                                <span class="sr">${_('Course options for')}</span>-->
+<!--                                <span class="sr">&nbsp;-->
+<!--                                  ${course_overview.display_name_with_default}-->
+<!--                                </span>-->
+
+<!--                              </button>-->
+                              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="actions-dropdown-${dashboard_index}" tabindex="-1">
+                                <div id="actions-dropdown-list-${dashboard_index}" aria-label="${_('Available Actions')}" role="menu">
+                                    <div class="my-1">
+                                      % if (show_courseware_link or is_unfulfilled_entitlement) and not is_course_expired:
+                                        % if course_overview.has_ended():
+                                          % if not is_unfulfilled_entitlement:
+                                            <a href="${course_target}" class="dropdown-item enter-course archived course-target-link" data-course-key="${enrollment.course_id}">${_('View Archived Course')}<span class="sr">&nbsp;${course_overview.display_name_with_default}</span></a>
+                                          % endif
+
+                                        % else:
+                                          <%include file="_dashboard_course_resume.html" args="resume_button_url=resume_button_url, course_overview=course_overview, enrollment=enrollment, is_unfulfilled_entitlement=is_unfulfilled_entitlement, course_target=course_target, related_programs=related_programs"/>
+                                        % endif
+                                      % endif
+                                    </div>
+                                  % if can_unenroll:
+                                    <div class="my-1" id="actions-item-unenroll-${dashboard_index}" role="menuitem">
+                                      <% course_refund_url = reverse('course_run_refund_status', args=[six.text_type(course_overview.id)]) %>
+                                          <a href="#unenroll-modal" class="dropdown-item action-unenroll" rel="leanModal"
+                                            data-course-id="${course_overview.id}"
+                                            data-course-number="${course_overview.number}"
+                                            data-course-name="${course_overview.display_name_with_default}"
+                                            data-dashboard-index="${dashboard_index}"
+                                            data-course-refund-url="${course_refund_url}"
+                                            data-course-is-paid-course="${is_paid_course}"
+                                            data-is-course-voucher-refundable="${is_course_voucher_refundable}"
+                                            data-course-cert-name-long="${cert_name_long}"
+                                            data-course-enrollment-mode="${enrollment.mode}">
+                                            ${_('Unenroll')}
+                                          </a>
+                                    </div>
+                                % elif partner_managed_enrollment:
+                                  <div class="my-1" id="actions-item-enrolled-by-partner-${dashboard_index}" role="menuitem">
+                                    <a class="dropdown-item action-message action-unenroll-managed-enrollment">
+                                      ${_('You are enrolled by your institution and you should reach out to your institution to drop this course.')}
+                                    </a>
+                                  </div>
+                                % endif
+                                % if show_email_settings:
+                                  <div class="mb-1" id="actions-item-email-settings-${dashboard_index}" role="menuitem">
+                                      <a href="#email-settings-modal" class="dropdown-item action-email-settings" rel="leanModal" data-course-id="${course_overview.id}" data-course-number="${course_overview.number}" data-dashboard-index="${dashboard_index}" data-optout="${course_overview.id in course_optouts}">${_('Email Settings')}</a>
+                                  </div>
+                                % endif
+                                </div>
+                              </div>
+                            </div>
                         % endif
-                  </div>
+                      </div>
               </div>
           </div>
-        <ul class="list-inline mb-0">
-            <li class="list-inline-item">
+          <div class="wrapper-course-info-actions">
+              <ul class="list-inline mb-0">
+                  <li class="list-inline-item">
                 <ul class="list-inline mb-0">
                     <li class="list-inline-item"><img src="static/images/brand/icon-calendar.svg" /></li>
                     <li class="list-inline-item"><p style="font-size: 14px">${_("Organisation")}: ${course_overview.display_org_with_default}</p></li>
                 </ul>
             </li>
-            <li class="list-inline-item">
-                <ul class="list-inline  mb-0">
-                    <li class="list-inline-item"><img src="static/images/brand/icon-time.svg" /></li>
-                    <li class="list-inline-item"><p style="font-size: 14px">${_("Effort")}: ${course_overview.effort}</p></li>
+                  <li class="list-inline-item">
+                      <ul class="list-inline  mb-0">
+                        <li class="list-inline-item"><img src="static/images/brand/icon-time.svg" /></li>
+                        <li class="list-inline-item"><p style="font-size: 14px">${_("Effort")}: ${course_overview.effort}</p></li>
+                      </ul>
+                  </li>
+                  <li class="list-inline-item">
+                      <ul class="list-inline  mb-0">
+                          <li class="list-inline-item"><img src="static/images/brand/icon-course.svg" /></li>
+                          <li class="list-inline-item"><p style="font-size: 14px">${_("Pacing")}: ${course_overview.pacing}</p></li>
+                      </ul>
+                  </li>
                 </ul>
-            </li>
-            <li class="list-inline-item">
-                <ul class="list-inline  mb-0">
-                    <li class="list-inline-item"><img src="static/images/brand/icon-course.svg" /></li>
-                    <li class="list-inline-item"><p style="font-size: 14px">${_("Pacing")}: ${course_overview.pacing}</p></li>
-                </ul>
-            </li>
-        </ul>
-        <div class="wrapper-course-info-actions">
-          <div class="wrapper-course-info-row">
+              <!-- div class="wrapper-course-info-row">
+                    <div class="course-info">
+                      <span class="info-university">${course_overview.display_org_with_default} - </span>
+                      <span class="info-course-id">${course_overview.display_number_with_default}</span>
+                      <%
+                        enrollment_date = course_overview.self_paced and enrollment and enrollment.created
+                        if course_overview.start_date_is_still_default:
+                            container_string = _("Coming Soon")
+                            course_date = None
+                        else:
+                            format = 'shortDate'
+                            dashboard_start_display = course_overview.dashboard_start_display
+                            if course_overview.has_ended():
+                                container_string = _("Ended - {date}")
+                                course_date = course_overview.end
+                            elif course_overview.has_started():
+                                container_string = _("Started - {date}")
+                                if enrollment_date and isinstance(dashboard_start_display, datetime.datetime):
+                                  course_date = max(enrollment_date, dashboard_start_display)
+                                else:
+                                  course_date = enrollment_date or dashboard_start_display
+                            elif course_overview.starts_within(days=5):
+                                container_string = _("Starts - {date}")
+                                course_date = dashboard_start_display
+                                format = 'defaultFormat'
+                            else: ## hasn't started yet
+                                container_string = _("Starts - {date}")
+                                course_date = dashboard_start_display
+                            endif
+                        endif
+                      %>
 
-            <div class="wrapper-course-actions">
-              <div class="course-actions">
-                % if show_courseware_link or course_overview.has_social_sharing_url() or course_overview.has_marketing_url():
-                    % if share_settings:
-                        <%
-                          share_url = get_link_for_about_page(course_overview)
-                          encoded_utm_parameters = get_encoded_course_sharing_utm_params()
-                          share_window_name = 'shareWindow'
-                          share_window_config = 'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=640, height=480'
-                        %>
-                        % if share_settings.get('DASHBOARD_FACEBOOK', False):
-                            <%
-                              facebook_share_url = u"{url}?{utm_params}".format(url=share_url, utm_params=encoded_utm_parameters['facebook'])
-                              share_text = _("I'm taking {course_name} online with {facebook_brand}. Check it out!").format(course_name=course_overview.display_name_with_default, facebook_brand=share_settings.get('FACEBOOK_BRAND', 'edX.org'))
-                              query_params = urlencode((('u', facebook_share_url), ('quote', share_text),))
-                              facebook_url = 'https://www.facebook.com/sharer/sharer.php?{query}'.format(query=query_params)
-                              share_msg = _("Share {course_name} on Facebook").format(course_name=course_overview.display_name_with_default)
-                            %>
-                            <a
-                              data-tooltip="${_('Share on Facebook')}"
-                              data-trigger="focus hover"
-                              class="action action-facebook"
-                              href="${facebook_url}"
-                              rel="noopener"
-                              target="_blank"
-                              title="${_('Share on Facebook')}"
-                              data-course-id="${course_overview.id}"
-                              onclick="var popupWindow = window.open('${facebook_url}', '${share_window_name}', '${share_window_config}'); popupWindow.opener = null; return false;">
-                              <span class="sr">${share_msg}</span>
-                              <span class="fa fa-facebook" aria-hidden="true"></span>
-                            </a>
+                        <span class="info-date-block-container">
+                            % if not is_unfulfilled_entitlement and is_course_expired:
+                              <span class="info-date-block" data-course-key="${enrollment.course_id}">
+                                ${show_courseware_link.user_message}
+                                <span class="sr">
+                                  &nbsp;${_('for {course_display_name}').format(course_display_name=course_overview.display_name_with_default)}
+                                </span>
+                              </span>
+                            % elif is_unfulfilled_entitlement:
+                                <span class="info-date-block" aria-live="polite">
+                                    <span class="icon fa fa-warning" aria-hidden="true"></span>
+                                    % if not entitlement_expired_at:
+                                        % if entitlement_expiration_date:
+                                            ${_('You must select a session by {expiration_date} to access the course.').format(expiration_date=entitlement_expiration_date)}
+                                        % else:
+                                            ${_('You must select a session to access the course.')}
+                                        % endif
+                                    % endif
+                                </span>
+                            % else:
+                                % if isinstance(course_date, six.string_types):
+                                    <span class="info-date-block">${container_string.format(date=course_date)}</span>
+                                % elif course_date is not None:
+                                    <span class="info-date-block localized-datetime" data-language="${user_language}" data-timezone="${user_timezone}" data-datetime="${course_date.strftime('%Y-%m-%dT%H:%M:%S%z')}" data-format=${format} data-string="${container_string}"></span>
+                                % endif
+                            % endif
+                            % if entitlement:
+                                % if not entitlement_expired_at:
+                                    <button class="change-session btn-link ${'hidden' if is_unfulfilled_entitlement else ''}">${_('Change or Leave Session')}</button>
+                                % endif
+                            % endif
+                        </span>
+                        % if entitlement and not is_unfulfilled_entitlement and entitlement_expiration_date:
+                            <div class="info-expires-at">
+                                    <span class="msg-icon fa fa-warning" aria-hidden="true"></span>
+                                    % if entitlement_expired_at:
+                                        ${_('You can no longer change sessions.')}
+                                    % else:
+                                        ${_('You can change sessions until {entitlement_expiration_date}.').format(entitlement_expiration_date=entitlement_expiration_date)}
+                                    % endif
+                            </div>
                         % endif
-                        % if share_settings.get('DASHBOARD_TWITTER', False):
-                            <%
-                              twitter_share_url = u"{url}?{utm_params}".format(url=share_url, utm_params=encoded_utm_parameters['twitter'])
-                              default_share_text = _("I'm taking {course_name} online with {twitter_brand}. Check it out!").format(course_name=course_overview.display_name_with_default, twitter_brand=share_settings.get('TWITTER_BRAND', '@edxonline'))
-                              share_text = urlquote_plus(share_settings.get('DASHBOARD_TWITTER_TEXT', default_share_text))
-                              twitter_url = u'https://twitter.com/intent/tweet?text=' + share_text + u'%20' + urlquote_plus(twitter_share_url)
-                              share_msg = _("Share {course_name} on Twitter").format(course_name=course_overview.display_name_with_default)
-                            %>
-                            <a
-                              data-tooltip="${_('Share on Twitter')}"
-                              data-trigger="focus hover"
-                              class="action action-twitter"
-                              href="${twitter_url}"
-                              rel="noopener"
-                              target="_blank"
-                              title="${_('Share on Twitter')}"
-                              data-course-id="${course_overview.id}"
-                              onclick="var popupWindow = window.open('${twitter_url}', '${share_window_name}', '${share_window_config}'); popupWindow.opener = null; return false;">
-                              <span class="sr">${share_msg}</span>
-                              <span class="fa fa-twitter" aria-hidden="true"></span>
-                            </a>
-                        % endif
-                    % endif
-                % endif
+                    </div>
 
-                ## We should only show the gear dropdown if the user is able to refund/unenroll from their entitlement
-                ## and/or if they have selected a course run and email_settings are enabled
-                ## as these are the only actions currently available
-
-              </div>
-            </div>
+                  </div -->
           </div>
-
-<!--          <div class="continue-button">-->
-<!--              % if (show_courseware_link or is_unfulfilled_entitlement) and not is_course_expired:-->
-<!--                % if course_overview.has_ended():-->
-<!--                  % if not is_unfulfilled_entitlement:-->
-<!--                    <a href="${course_target}" class="enter-course archived course-target-link" data-course-key="${enrollment.course_id}">${_('View Archived Course')}<span class="sr">&nbsp;${course_overview.display_name_with_default}</span></a>-->
-<!--                  % endif-->
-
-<!--                % else:-->
-<!--                  <%include file="_dashboard_course_resume.html" args="resume_button_url=resume_button_url, course_overview=course_overview, enrollment=enrollment, is_unfulfilled_entitlement=is_unfulfilled_entitlement, course_target=course_target, related_programs=related_programs"/>-->
-<!--                % endif-->
-<!--              % endif-->
-<!--          </div>-->
-        </div>
       </div>
   </section>
   <footer class="wrapper-messages-primary">
@@ -299,9 +379,10 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
       % if related_programs:
         <div class="message message-related-programs is-shown">
           <span class="related-programs-preface" tabindex="0">${_('Related Programs')}:</span>
-          <ul>
+          <ul class="related-program-container" >
             % for program in related_programs:
-            <li>
+              ## intentionally using multiple classnames here to bump up specificity
+            <li class="related-program-element important-element">
               <span class="category-icon ${program['type'].lower()}-icon" aria-hidden="true"></span>
               <span><a href="${program['detail_url']}">${u'{title} {type}'.format(title=program['title'], type=program['type'])}</a></span>
             </li>
@@ -348,7 +429,7 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
               <h4 class="message-title">${_('Your current verification will expire soon!')}</h4>
               <p class="message-copy">${_('You have submitted your reverification information. You will see a message on your dashboard when the verification process is complete (usually within 5-7 days).')}</p>
             % elif verification_status['status'] == VERIFY_STATUS_APPROVED:
-              <h4 class="message-title">${_('You have successfully verified your ID with edX')}</h4>
+              <h4 class="message-title">${_('You have successfully verified your ID with {platform_name}').format(platform_name=settings.PLATFORM_NAME)}</h4>
               % if verification_status.get('verification_good_until') is not None:
                 <p class="message-copy">${_('Your current verification is effective until {date}.').format(date=verification_status['verification_good_until'])}
               % endif

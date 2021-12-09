@@ -44,26 +44,29 @@ from six import text_type
     }
 </style>
 
-<div class="col">
-    <div class="card rounded-brand-card mb-3" id="${course.id}" role="region" aria-label="${course.display_name_with_default}">
+    <div style="max-width: 300px" class="card rounded-brand-card mb-3" id="${course.id}" role="region" aria-label="${course.display_name_with_default}">
         <%
-            if course.course_image_url is None:
-                course_image_url = "/static/images/brand/course_card_image.png"
+            if course.course_image_url is None or course.course_image_url == "/static/studio/images/pencils.jpg":
+                course_image_url = "static/images/brand/img-logo_full.svg"
+                background = 'background: #553C8B'
             else:
                 course_image_url = course.course_image_url
+                background = 'background: '
         %>
-        <img class="card-img-top rounded-brand-top" src="${course_image_url}" alt="${course.display_name_with_default} " />
-        <div class="card-body">
-            <p class="card-title brand-primary my-3" style="font-size: 16px; font-weight: bold">${course.display_name_with_default}</p>
-            <ul class="list-inline mb-0">
+        <img width="375px" height="200px" style="${background}" class="card-img-top rounded-brand-top" src="${course_image_url}" alt="${course.display_name_with_default} " />
+        <p class="card-title brand-primary mx-4 mt-4 mb-1" style="font-size: 16px; font-weight: bold">${course.display_name_with_default}</p>
+        <div class="card-body pt-0 d-flex flex-column align-items-start justify-content-end">
+
+            <div class="d-flex flex-column align-items-start mt-auto">
+                <ul class="list-inline mb-0">
                 <li class="list-inline-item"><img src="static/images/brand/icon-calendar.svg" /></li>
                 <li class="list-inline-item"><p style="font-size: 14px">${_("Organisation")}: ${course.display_org_with_default}</p></li>
             </ul>
-            <ul class="list-inline  mb-0">
+            <ul class="list-inline mb-0">
                 <li class="list-inline-item"><img src="static/images/brand/icon-time.svg" /></li>
                 <li class="list-inline-item"><p style="font-size: 14px">${_("Effort")}: ${course.effort}</p></li>
             </ul>
-            <ul class="list-inline  mb-0">
+            <ul class="list-inline mb-0">
                 <li class="list-inline-item"><img src="static/images/brand/icon-course.svg" /></li>
                 <li class="list-inline-item"><p style="font-size: 14px">${_("Pacing")}: ${course.pacing}</p></li>
             </ul>
@@ -88,10 +91,13 @@ from six import text_type
                     </li>
                 </ul>
             % endif
-            <a href="${reverse('about_course', args=[text_type(course.id)])}" class="btn btn-brand-outline-primary col-12 mt-3">${_("LEARN MORE")}</a>
+            </div>
+
+        </div>
+        <div class="card-footer">
+            <a href="${reverse('about_course', args=[text_type(course.id)])}" class="btn btn-brand-outline-primary col-12">${_("LEARN MORE")}</a>
         </div>
     </div>
-</div>
 
 <%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
     DateUtilFactory.transform(iterationKey=".localized_datetime");

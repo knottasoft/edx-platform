@@ -1,4 +1,5 @@
 import requests
+from django.conf import settings
 
 BASE_URL = settings.COPP_API_BASE_URL
 REFRESH_TOKEN = settings.COPP_API_REFRESH_TOKEN
@@ -16,5 +17,5 @@ class Api():
         headers = {"Content-Type": "application/json"}
         response = requests.post(f"{BASE_URL}/token/refresh/", headers=headers, json=data)
         response.raise_for_status()
-        token = response.json()   
+        token = response.json()
         return token['access']
