@@ -32,33 +32,36 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
     /*    opacity: 0.5;*/
     /*}*/
 </style>
-<main id="main" aria-label="Content" tabindex="-1">
+<main id="main" aria-label="Content" tabindex="-1" class="">
     <section class="home">
       <header class="mb-3">
           <div class="position-relative">
-              <div class="of">
-                  <img src="static/images/brand/banner.png">
-              </div>
               <div class="position-absolute top-50 start-0 translate-middle-y">
-                  <div class="ms-5">
-                        % if homepage_overlay_html:
-                            ${homepage_overlay_html | n, decode.utf8}
-                        % else:
-                            <%include file="index_overlay.html" />
-                        % endif
+                  <div class="ml-5">
+                      <div class="container">
+                          <div class="col-9">
+                              % if homepage_overlay_html:
+                                ${homepage_overlay_html | n, decode.utf8}
+                              % else:
+                                <%include file="index_overlay.html" />
+                              % endif
+                              % if allows_login:
+                                % if allow_public_account_creation:
+                                    % if should_redirect_to_authn_mfe:
+                                        <a class="btn btn-lg btn-brand-white ms-5" href="${settings.AUTHN_MICROFRONTEND_URL}/register${login_query()}">${_("Register")}</a>
+                                    % else:
+                                        <a class="btn btn-lg btn-brand-white ms-5" href="/register${login_query()}">${_("Register")}</a>
+                                    % endif
+                                % endif
+                              % endif
+                          </div>
+                      </div>
                     </div>
-                  <div class="">
-                      % if allows_login:
-                        % if allow_public_account_creation:
-                          % if should_redirect_to_authn_mfe:
-                            <a class="btn btn-lg btn-brand-white ms-5" href="${settings.AUTHN_MICROFRONTEND_URL}/register${login_query()}">${_("Register")}</a>
-                          % else:
-                            <a class="btn btn-lg btn-brand-white ms-5" href="/register${login_query()}">${_("Register")}</a>
-                          % endif
-                        % endif
-                      % endif
-                  </div>
               </div>
+              <div class="of">
+                  <img height="360px" width="100%" src="static/images/brand/banner.png">
+              </div>
+
           </div>
       </header>
       <%include file="${courses_list}" />
