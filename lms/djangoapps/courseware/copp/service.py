@@ -39,21 +39,29 @@ class CoppService():
 
         result = []
         for sdt in student_docs:
-            result.append(sdt['description'])
+            if sdt['status'] == 'v':
+                result.append(sdt['description'])
 
         log.info('getStudentDocumentTypes: student_id => {}'.format(student_id))
         log.info('getStudentDocumentTypes: {}'.format(' '.join(result)))
 
         return result
-
-    def getRequiredDocTypes(self, course_key, student_id):
-        course_doc_types = self.getCourseDocTypes(course_key)
+    
+    def getRequiredDocTypes(self, course_doc_types, student_doc_types, doc_types):
 
         if len(course_doc_types) > 0:
-            sdts = self.getStudentDocumentTypes(student_id)
-            rdt = [ crdt for crdt in course_doc_types if crdt not in sdts]
-            doc_types = self.getDocTypes()
+            rdt = [ crdt for crdt in course_doc_types if crdt not in student_doc_types]
             dt = [ docType for docType in doc_types if docType['value'] in rdt ]
             return dt
 
         return []
+
+    def getExistDocTypes(self, course_doc_types, student_doc_types, doc_types):
+
+        if len(course_doc_types) > 0:
+            rdt = [ crdt for crdt in course_doc_types if crdt in student_doc_types]
+            dt = [ docType for docType in doc_types if docType['value'] in rdt ]
+            return dt
+
+        return []
+

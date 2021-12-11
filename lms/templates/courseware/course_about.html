@@ -112,6 +112,15 @@ from six import string_types
                 <li>${doc['label']}</li>
               % endfor
             </ul>
+
+            <div>
+              Подтвержденные документы студента, которые потребуются для записи на курс:
+            </div>
+            <ul>
+              % for doc in exist_doc_types:
+                <li>${doc['label']}</li>
+              % endfor
+            </ul>
         %else:
           <%
             if ecommerce_checkout:

@@ -971,8 +971,15 @@ def course_about(request, course_id):
         
         is_document_required = False
         required_doc_types = []
+        exist_doc_types = []
+
         coppService = CoppService()
-        required_doc_types = coppService.getRequiredDocTypes(course_id, request.user.id)
+        course_doc_types = coppService.getCourseDocTypes(course_id)
+        student_doc_types = coppService.getCourseDocTypes(request.user.id)
+        doc_types = coppService.getDocTypes()
+
+        required_doc_types = coppService.getRequiredDocTypes(course_doc_types, student_doc_types, doc_types)
+        exist_doc_types = coppService.getExistDocTypes(course_doc_types, student_doc_types, doc_types)
         log.debug(required_doc_types)
         if len(required_doc_types) > 0:
             is_document_required = True
@@ -1024,6 +1031,7 @@ def course_about(request, course_id):
             'allow_anonymous': allow_anonymous,
             'is_document_required': is_document_required,
             'required_doc_types':required_doc_types,
+            'exist_doc_types':exist_doc_types,
         }
 
         return render_to_response('courseware/course_about.html', context)
