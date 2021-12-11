@@ -16,7 +16,7 @@ class CoppService():
     def getCourseDocTypes(self, course_key):
         api = Api()
         parameters = [('course_run_key', course_key)]
-        print(course_key)
+
         response = api.get("courseRunDocTypes", parameters)
 
         if len(response) > 0:
@@ -46,7 +46,7 @@ class CoppService():
         log.info('getStudentDocumentTypes: {}'.format(' '.join(result)))
 
         return result
-    
+
     def getRequiredDocTypes(self, course_doc_types, student_doc_types, doc_types):
 
         if len(course_doc_types) > 0:

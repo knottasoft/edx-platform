@@ -912,6 +912,9 @@ def course_about(request, course_id):
     """
     course_key = CourseKey.from_string(course_id)
 
+    print(course_id)
+    print(course_key)
+
     # If a user is not able to enroll in a course then redirect
     # them away from the about page to the dashboard.
     if not can_self_enroll_in_course(course_key):
@@ -968,22 +971,22 @@ def course_about(request, course_id):
         can_enroll = bool(request.user.has_perm(ENROLL_IN_COURSE, course))
         invitation_only = is_courses_default_invite_only_enabled() or course.invitation_only
         is_course_full = CourseEnrollment.objects.is_course_full(course)
-        
+
         is_document_required = False
         required_doc_types = []
         exist_doc_types = []
 
         coppService = CoppService()
         course_doc_types = coppService.getCourseDocTypes(course_id)
-        student_doc_types = coppService.getCourseDocTypes(request.user.id)
+        student_doc_types = coppService.getStudentDocumentTypes(request.user.id)
         doc_types = coppService.getDocTypes()
 
         required_doc_types = coppService.getRequiredDocTypes(course_doc_types, student_doc_types, doc_types)
         exist_doc_types = coppService.getExistDocTypes(course_doc_types, student_doc_types, doc_types)
-        log.debug(required_doc_types)
+
         if len(required_doc_types) > 0:
             is_document_required = True
-        
+
 
         # Register button should be disabled if one of the following is true:
         # - Student is already registered for course
