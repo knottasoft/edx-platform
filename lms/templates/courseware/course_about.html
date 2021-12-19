@@ -134,12 +134,16 @@ from six import string_types
           %>
           <a href="${reg_href}" class="${href_class}">
             ${_("Enroll Now")}
-            тут кнопка
           </a>
           <div id="register_error"></div>
         %endif
         </div>
-
+        <div>
+          <div>Тут будет дополнительная информация из discovery</div>
+            <div>
+              ${custom_course_details.get("title")}
+            </div>
+        </div>
       </section>
       % if get_course_about_section(request, course, "video"):
       <a href="#video-modal" class="media" rel="leanModal">
@@ -159,8 +163,6 @@ from six import string_types
       </div>
   </header>
   </%block>
-
-  <div class="container">
 
     <%block name="course_about_details">
     <div class="details">

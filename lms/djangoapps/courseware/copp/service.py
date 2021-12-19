@@ -2,6 +2,7 @@
 import logging
 
 from lms.djangoapps.courseware.copp.api import Api
+from .discovery import DiscoveryApiClient
 log = logging.getLogger("CoppService")
 
 class CoppService():
@@ -65,3 +66,8 @@ class CoppService():
 
         return []
 
+    def getCourseRunDetails(self, course_key):
+        discovery_api = DiscoveryApiClient()
+        
+        result = discovery_api.get_course_run_detail(course_key)
+        return result
