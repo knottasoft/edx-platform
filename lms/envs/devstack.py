@@ -446,3 +446,4 @@ COPP_API_REFRESH_TOKEN='eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjo
 SOCIAL_AUTH_EDX_OAUTH2_URL_ROOT = "http://edx.devstack.lms:18000"
 BACKEND_SERVICE_EDX_OAUTH2_KEY = "discovery-backend-service-key"
 BACKEND_SERVICE_EDX_OAUTH2_SECRET = "discovery-backend-service-secret"
+DISCOVERY_COURSES_ENDPOINT = "http://discovery:18381/api/v1"
