@@ -26,39 +26,82 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
     help_link = doc_link
 %>
 
-<div class="nav-links">
-  <div class="main">
-    % if show_dashboard_tabs:
-      <div class="mobile-nav-item hidden-mobile nav-item nav-tab">
-        <a class="${'active ' if reverse('dashboard') == request.path else ''}tab-nav-link" href="${reverse('dashboard')}"
-             aria-current="${'page' if reverse('dashboard') == request.path else 'false'}">
-             ${_("Courses")}
+<style>
+    .navbar-light {
+        color: #F6F7FA;
+    }
+
+    .bg-brand {
+      --bs-bg-opacity: 1;
+      background-color: #553C8B !important;
+    }
+    .nav-item {
+        color: #FFFFFF;
+    }
+    a:not(.btn), a:visited:not(.btn) {
+        color: #FFFFFF;
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-brand" aria-label="${_('Supplemental Links')}">
+    <div class="container-fluid">
+        <a class="navbar-brand ps-4" href="#">
+            <img class="logo" width="50px" height="50px" src="https://copp26.ru/upload/openedx/logo_small_White.svg" alt={logoAltText} />
         </a>
-      </div>
-      % if show_program_listing:
-        <div class="mobile-nav-item hidden-mobile nav-item nav-tab">
-          <a class="${'active ' if reverse('program_listing_view') in request.path else ''}tab-nav-link" href="${reverse('program_listing_view')}"
-             aria-current="${'page' if reverse('program_listing_view') == request.path else 'false'}">
-             ${_("Programs")}
-          </a>
+        <div class="collapse navbar-collapse d-flex">
+            <ul class="nav navbar-nav mb-2 mb-lg-0 w-100 align-items-center">
+                % if settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
+                    <li class="nav-item flex-grow-1 px-4">
+                        <form method="get" action="/courses">
+                            <div class="input-group d-flex align-items-center pe-4">
+                                <input class="form-control border-end-0 border rounded-pill search-input px-4"
+                                       name="search_query"
+                                       type="text"
+                                       placeholder="${_('Search for a course')}"
+                                       id="search-input"
+                                />
+                                    <span class="input-group-append">
+                                        <a class="btn ms-n5 py-1" type="submit">
+                                            <i class="fa fa-search fa-lg" style="color: #553C8B;"></i>
+                                        </a>
+                                    </span>
+                            </div>
+                        </form>
+                    </li>
+                % endif
+                    <li class="nav-item px-4">
+                        <a class="${'active ' if reverse('dashboard') == request.path else ''}tab-nav-link text-white" href="${reverse('dashboard')}"
+                           aria-current="${'page' if reverse('dashboard') == request.path else 'false'}">${_("Courses")}
+                        </a>
+                    </li>
+                    % if show_program_listing:
+                        <li class="nav-item px-4">
+                            <a class="${'active ' if reverse('program_listing_view') in request.path else ''}tab-nav-link text-white" href="${reverse('program_listing_view')}"
+                                aria-current="${'page' if reverse('program_listing_view') == request.path else 'false'}">${_("Programs")}
+                            </a>
+                        </li>
+                     % endif
+<!--                % if show_dashboard_tabs:-->
+<!--                    -->
+<!--                % endif-->
+<!--                % if show_explore_courses-->
+                    <li class="nav-item px-4">
+                        <a class="tab-nav-link discover-new-link text-white" href="${marketing_link('COURSES')}"
+                             aria-current="${'page' if '/courses' in request.path else 'false'}">${_('Discover New')}
+                        </a>
+                    </li>
+<!--                % endif-->
+                    % if enable_help_link:
+                          <li class="nav nav-item">
+                              <a class="help-link text-white" href="${help_link}" rel="noopener" target="_blank">${_("Help")}</a>
+                          </li>
+                    % endif
+            </ul>
         </div>
-      % endif
-    % endif
-    % if show_explore_courses:
-      <div class="mobile-nav-item hidden-mobile nav-item nav-tab">
-          <a class="tab-nav-link discover-new-link" href="${marketing_link('COURSES')}"
-             aria-current="${'page' if '/courses' in request.path else 'false'}">
-             ${_('Discover New')}
-          </a>
-      </div>
-    % endif
-  </div>
-  <div class="secondary">
-    % if enable_help_link:
-      <div class="mobile-nav-item hidden-mobile nav-item">
-        <a class="help-link" href="${help_link}" rel="noopener" target="_blank">${_("Help")}</a>
-      </div>
-    % endif
-    <%include file="user_dropdown.html"/>
-  </div>
-</div>
+        <ul class="nav navbar-nav me-4 mb-2 mb-lg-0 ms-4">
+            <li class="nav nav-item">
+                <%include file="user_dropdown.html"/>
+            </li>
+        </ul>
+    </div>
+</nav>

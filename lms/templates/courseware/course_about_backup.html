@@ -103,24 +103,6 @@ from six import string_types
             <strong>${_("View Course")}</strong>
             </a>
           %endif
-        %elif is_document_required:
-            <div>
-              Для записи на курс требуется добавить в личный кабинет следующие документы:
-            </div>
-            <ul>
-              % for doc in required_doc_types:
-                <li>${doc['label']}</li>
-              % endfor
-            </ul>
-
-            <div>
-              Подтвержденные документы студента, которые потребуются для записи на курс:
-            </div>
-            <ul>
-              % for doc in exist_doc_types:
-                <li>${doc['label']}</li>
-              % endfor
-            </ul>
         %else:
           <%
             if ecommerce_checkout:
@@ -134,7 +116,6 @@ from six import string_types
           %>
           <a href="${reg_href}" class="${href_class}">
             ${_("Enroll Now")}
-            тут кнопка
           </a>
           <div id="register_error"></div>
         %endif

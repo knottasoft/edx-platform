@@ -1,46 +1,70 @@
 <%page expression_filter="h"/>
 <%inherit file="main.html" />
 <%namespace name='static' file='static_content.html'/>
-<%!
+<%namespace file='./main.html' import="login_query"/>
+
+<%
 from django.utils.translation import ugettext as _
 from django.urls import reverse
 
 from openedx.core.djangolib.markup import HTML, Text
+from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_microfrontend
 %>
 
-<main id="main" aria-label="Content" tabindex="-1">
+<%
+  mktg_site_enabled = static.get_value('ENABLE_MKTG_SITE', settings.FEATURES.get('ENABLE_MKTG_SITE', False))
+  courses_are_browsable = settings.FEATURES.get('COURSES_ARE_BROWSABLE')
+  allows_login = not settings.FEATURES['DISABLE_LOGIN_BUTTON'] and not combined_login_and_register
+  can_discover_courses = settings.FEATURES.get('ENABLE_COURSE_DISCOVERY')
+  allow_public_account_creation = static.get_value('ALLOW_PUBLIC_ACCOUNT_CREATION', settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION'))
+  should_redirect_to_authn_mfe = should_redirect_to_authn_microfrontend()
+%>
+
+<style>
+    .home>header {
+        background-color: #553C8B;
+        opacity: 0.9;
+    }
+    /*.of {*/
+    /*    !*filter: blur(4px);*!*/
+    /*    !*-webkit-filter: blur(4px);*!*/
+    /*    background: #553C8B;*/
+    /*    opacity: 0.5;*/
+    /*}*/
+</style>
+<main id="main" aria-label="Content" tabindex="-1" class="">
     <section class="home">
-      <header>
-        <div class="outer-wrapper">
-          <div class="title">
-            <div class="heading-group">
-              % if homepage_overlay_html:
-                ${homepage_overlay_html | n, decode.utf8}
-              % else:
-                <%include file="index_overlay.html" />
-              % endif
-            </div>
-            % if settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
-              <div class="course-search">
-                <form method="get" action="/courses">
-                  <label><span class="sr">${_("Search for a course")}</span>
-                    <input class="search-input" name="search_query" type="text" placeholder="${_("Search for a course")}"></input>
-                  </label>
-                  <button class="search-button" type="submit">
-                    <span class="icon fa fa-search" aria-hidden="true"></span><span class="sr">${_("Search")}</span>
-                  </button>
-                </form>
+      <header class="mb-3">
+          <div class="position-relative">
+              <div class="position-absolute top-50 start-0 translate-middle-y">
+                  <div class="ml-5">
+                      <div class="container">
+                          <div class="col-9">
+                              % if homepage_overlay_html:
+                                ${homepage_overlay_html | n, decode.utf8}
+                              % else:
+                                <%include file="index_overlay.html" />
+                              % endif
+                              % if allows_login:
+                                % if allow_public_account_creation:
+                                    % if should_redirect_to_authn_mfe:
+                                        <a class="btn btn-lg btn-brand-white ms-5" href="${settings.AUTHN_MICROFRONTEND_URL}/register${login_query()}">${_("Register")}</a>
+                                    % else:
+                                        <a class="btn btn-lg btn-brand-white ms-5" href="/register${login_query()}">${_("Register")}</a>
+                                    % endif
+                                % endif
+                              % endif
+                          </div>
+                      </div>
+                    </div>
               </div>
-            % endif
+              <div class="of">
+                  <img height="360px" width="100%" src="static/images/brand/banner.png">
+              </div>
 
           </div>
-
-          <%include file="index_promo_video.html" />
-        </div>
-
       </header>
       <%include file="${courses_list}" />
-
     </section>
 </main>
 

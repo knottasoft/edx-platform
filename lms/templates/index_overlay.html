@@ -4,7 +4,17 @@
 from django.utils.translation import ugettext as _
 from openedx.core.djangolib.markup import HTML, Text
 %>
+<style>
+    .brand-title {
+        font-family: 'Montserrat', sans-serif;
+        line-height: 140%;
+    }
+    .brand-subtitle {
+        font-size: 22px;
+        line-height: 160%;
+        font-family: "Roboto", sans-serif;
+    }
+</style>
 
-<h1>${Text(_(u"Welcome to {platform_name}")).format(platform_name=settings.PLATFORM_NAME)}</h1>
-## Translators: 'Open edX' is a registered trademark, please keep this untranslated. See https://open.edx.org for more information.
-<p>${Text(_("It works! Powered by Open edX{registered_trademark}")).format(registered_trademark=HTML("<sup style='font-size: 65%'>&reg;</sup>"))}</p>
+<h1 class="text-white font-weight-bold text-left brand-title pb-4">${Text(_(u"Welcome to"))}<br>${Text("{platform_name}").format(platform_name=settings.PLATFORM_NAME)}</h1>
+<p class="text-white brand-subtitle pb-4">${Text(_("{platform_name} are ready to offer in-demand and new professional programs")).format(platform_name=settings.PLATFORM_NAME)}</p>

@@ -169,7 +169,7 @@ SEARCH_ENGINE = 'search.elastic.ElasticSearchEngine'
 
 
 ########################## Dashboard Search #######################
-FEATURES['ENABLE_DASHBOARD_SEARCH'] = False
+FEATURES['ENABLE_DASHBOARD_SEARCH'] = True
 
 
 ########################## Certificates Web/HTML View #######################
@@ -192,9 +192,9 @@ COURSE_DISCOVERY_MEANINGS = {
     'language': LANGUAGE_MAP,
 }
 
-FEATURES['ENABLE_COURSE_DISCOVERY'] = False
+FEATURES['ENABLE_COURSE_DISCOVERY'] = True
 # Setting for overriding default filtering facets for Course discovery
-# COURSE_DISCOVERY_FILTERS = ["org", "language", "modes"]
+COURSE_DISCOVERY_FILTERS = ["org", "language", "modes"]
 FEATURES['COURSES_ARE_BROWSEABLE'] = True
 HOMEPAGE_COURSE_MAX = 9
 
@@ -349,7 +349,7 @@ FEATURES.update({
     'ENABLE_ENTERPRISE_INTEGRATION': True,
 })
 
-ENABLE_MKTG_SITE = os.environ.get('ENABLE_MARKETING_SITE', False)
+ENABLE_MKTG_SITE = os.environ.get('ENABLE_MARKETING_SITE', True)
 MARKETING_SITE_ROOT = os.environ.get('MARKETING_SITE_ROOT', 'http://localhost:8080')
 
 MKTG_URLS = {
@@ -439,3 +439,6 @@ PROCTORING_USER_OBFUSCATION_KEY = '85920908f28904ed733fe576320db18cabd7b6cd'
 
 #################### Webpack Configuration Settings ##############################
 WEBPACK_LOADER['DEFAULT']['TIMEOUT'] = 5
+
+COPP_API_BASE_URL='https://coppapi.copp.knotta.ru/api/v1'
+COPP_API_REFRESH_TOKEN='eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY0NzQ1MjYwNCwianRpIjoiNTU5OTcxNWIxZTIwNGNkNzhhMGFkZjAwNmQ4NmQ3MGYiLCJ1c2VyX2lkIjoiM2RlYjBmMWItYTNiNS00ZTNlLTk2MzktZTc4YjkwMmZiYjhlIn0.kboLHTI3xkIYtC-5quh_SAwCoroAqDL0PfSNFQDlWeU'
