@@ -73,7 +73,7 @@ from six import string_types
 <main id="main" aria-label="Content" tabindex="-1" class="">
     <div class="home">
         <%block name="course_about_header">
-        <div class="jumbotron-brand d-flex justify-content-around align-items-center">
+        <div class="jumbotron-brand d-flex justify-content-start align-items-center">
             <div class="ml-5">
                 <h1 class="text-white font-weight-bold text-left brand-title">${course.display_name_with_default}</h1>
                 <%block name="course_about_important_dates">
@@ -168,7 +168,7 @@ from six import string_types
                 <div class="main-cta mt-5">
                 %if user.is_authenticated and registered:
                     %if show_courseware_link:
-                        <a type="button" class="btn btn-brand" href="${course_target}">
+                        <a type="button" class="btn btn-brand-white" href="${course_target}">
                     %endif
                             <span class="register disabled">${_("You are enrolled in this course")}</span>
                             %if show_courseware_link:
@@ -186,8 +186,27 @@ from six import string_types
                     <span class="register disabled">${_("Enrollment is Closed")}</span>
                 %elif allow_anonymous:
                     %if show_courseware_link:
-                        <a type="button" class="btn btn-brand" href="${course_target}"><strong>${_("View Course")}</strong></a>
+                        <a type="button" class="btn btn-brand-white" href="${course_target}"><strong>${_("View Course")}</strong></a>
                     %endif
+                %elif is_document_required:
+                    <a type="button" class="btn btn-brand-white" href="https://account.copp.knotta.ru" class="register">${_("Submit documents")}</a>
+                    <div>
+                        Для записи на курс требуется добавить в личный кабинет следующие документы:
+                    </div>
+                    <ul>
+                        % for doc in required_doc_types:
+                            <li>${doc['label']}</li>
+                        % endfor
+                    </ul>
+
+                    <div>
+                        Подтвержденные документы студента, которые потребуются для записи на курс:
+                    </div>
+                    <ul>
+                        % for doc in exist_doc_types:
+                            <li>${doc['label']}</li>
+                        % endfor
+                    </ul>
                 %else:
                     <%
                         if ecommerce_checkout:
@@ -199,19 +218,28 @@ from six import string_types
                         else:
                             href_class = "register"
                     %>
-                    <a type="button" class="btn btn-brand" href="${reg_href}" class="${href_class}">${_("Enroll Now")}</a>
+                    <a type="button" class="btn btn-brand-white" href="${reg_href}" class="${href_class}">${_("Enroll Now")}</a>
                     <div id="register_error"></div>
                 %endif
             </div>
             </div>
             <div class="mr-5">
-                % if get_course_about_section(request, course, "video"):
+                <%
+                    if course_image_urls['large'] is None:
+                        course_image_url = "static/images/brand/img-logo_full.svg"
+                        background = 'background: #553C8B'
+                    else:
+                        course_image_url = course_image_urls['large']
+                        background = 'background: '
+                %>
+
+                %if get_course_about_section(request, course, "video"):
                     <a href="#video-modal" class="media" rel="leanModal">
-                        <img class="rounded-4 float-right" height="80%" src="${course_image_urls['large']}" alt="" />
+                        <img class="rounded-4 float-right" height="80%" src="${course_image_url}" alt="" />
                         <div class="play-intro"></div>
                     </a>
                 %else:
-                    <img class="rounded-4 float-right" height="100%" src="${course_image_urls['large']}" alt="" />
+                    <img class="rounded-4 float-right" height="100%" src="${course_image_url}" alt="" />
                 % endif
             </div>
         </div>
@@ -219,27 +247,66 @@ from six import string_types
     </div>
 
 
-
-
-
-
-
-
     <div class="container">
+        <section class="about">
+            ${course_details.__dict__}
+            <h2>About This Course</h2>
+            <p>Include your long course description here. The long course description should contain 150-400 words. Я быд здесь</p>
+            <p>This is paragraph 2 of the long course description. Add more paragraphs as needed. Make sure to enclose them in paragraph tags.</p>
+        </section>
 
-    <%block name="course_about_details">
-    <div class="details">
-      % if staff_access and studio_url is not None:
-        <div class="wrap-instructor-info studio-view">
-          <a class="instructor-info-action" href="${studio_url}">${_("View About Page in studio")}</a>
-        </div>
-      % endif
+        <section class="prerequisites">
+            <h2>Requirements</h2>
+            <p>Add information about the skills and knowledge students need to take this course.</p>
+        </section>
 
-      <div class="inner-wrapper">
-        ${clean_dangerous_html(get_course_about_section(request, course, "overview"))}
-      </div>
-    </div>
-    </%block>
+        <section class="course-staff">
+            <h2>Course Staff</h2>
+            <article class="teacher">
+                <div class="teacher-image">
+                    <img src="/static/images/placeholder-faculty.png" align="left" style="margin:0 20 px 0" alt="Course Staff Image #1">
+                </div>
+                <h3>Staff Member #1</h3>
+                <p>Biography of instructor/staff member #1</p>
+            </article>
+            <article class="teacher">
+                <div class="teacher-image">
+                    <img src="/static/images/placeholder-faculty.png" align="left" style="margin:0 20 px 0" alt="Course Staff Image #2">
+                </div>
+                <h3>Staff Member #2</h3>
+                <p>Biography of instructor/staff member #2</p>
+            </article>
+        </section>
+
+        <section class="faq">
+            <section class="responses">
+                <h2>Frequently Asked Questions</h2>
+                <article class="response">
+                    <h3>What web browser should I use?</h3>
+                    <p>The Open edX platform works best with current versions of Chrome, Edge, Firefox, Internet Explorer, or Safari.</p>
+                    <p>See our <a href="https://edx.readthedocs.org/projects/open-edx-learner-guide/en/latest/front_matter/browsers.html">list of supported browsers</a> for the most up-to-date information.</p>
+                </article>
+
+                <article class="response">
+                    <h3>Question #2</h3>
+                    <p>Your answer would be displayed here.</p>
+                </article>
+            </section>
+        </section>
+
+<!--    <%block name="course_about_details">-->
+<!--    <div class="details">-->
+<!--      % if staff_access and studio_url is not None:-->
+<!--        <div class="wrap-instructor-info studio-view">-->
+<!--          <a class="instructor-info-action" href="${studio_url}">${_("View About Page in studio")}</a>-->
+<!--        </div>-->
+<!--      % endif-->
+
+<!--      <div class="inner-wrapper">-->
+<!--        ${clean_dangerous_html(get_course_about_section(request, course, "overview"))}-->
+<!--      </div>-->
+<!--    </div>-->
+<!--    </%block>-->
 
     <!-- TODO: Нужно переименовать переменные, чтобы не дублировать выше -->
 

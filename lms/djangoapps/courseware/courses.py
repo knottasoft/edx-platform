@@ -340,7 +340,6 @@ def get_course_about_section(request, course, section_key):
     if section_key in html_sections:
         try:
             loc = course.location.replace(category='about', name=section_key)
-
             # Use an empty cache
             field_data_cache = FieldDataCache([], course.id, request.user)
             about_module = get_module(
@@ -353,6 +352,8 @@ def get_course_about_section(request, course, section_key):
                 static_asset_path=course.static_asset_path,
                 course=course
             )
+
+            print(about_module)
 
             html = ''
 

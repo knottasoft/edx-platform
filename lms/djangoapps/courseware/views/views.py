@@ -968,15 +968,21 @@ def course_about(request, course_id):
         can_enroll = bool(request.user.has_perm(ENROLL_IN_COURSE, course))
         invitation_only = is_courses_default_invite_only_enabled() or course.invitation_only
         is_course_full = CourseEnrollment.objects.is_course_full(course)
-        
+
         is_document_required = False
         required_doc_types = []
+        exist_doc_types = []
+
         coppService = CoppService()
-        required_doc_types = coppService.getRequiredDocTypes(course_id, request.user.id)
-        log.debug(required_doc_types)
+        course_doc_types = coppService.getCourseDocTypes(course_id)
+        student_doc_types = coppService.getStudentDocumentTypes(request.user.id)
+        doc_types = coppService.getDocTypes()
+
+        required_doc_types = coppService.getRequiredDocTypes(course_doc_types, student_doc_types, doc_types)
+        exist_doc_types = coppService.getExistDocTypes(course_doc_types, student_doc_types, doc_types)
+
         if len(required_doc_types) > 0:
             is_document_required = True
-        
 
         # Register button should be disabled if one of the following is true:
         # - Student is already registered for course
@@ -1024,6 +1030,7 @@ def course_about(request, course_id):
             'allow_anonymous': allow_anonymous,
             'is_document_required': is_document_required,
             'required_doc_types':required_doc_types,
+            'exist_doc_types':exist_doc_types,
         }
 
         return render_to_response('courseware/course_about.html', context)
