@@ -2,6 +2,7 @@
 import logging
 
 from lms.djangoapps.courseware.copp.api import Api
+from .discovery import DiscoveryApiClient
 log = logging.getLogger("CoppService")
 
 class CoppService():
@@ -52,7 +53,6 @@ class CoppService():
         if len(course_doc_types) > 0:
             rdt = [ crdt for crdt in course_doc_types if crdt not in student_doc_types]
             dt = [ docType for docType in doc_types if docType['value'] in rdt ]
-            log.info(dt)
             return dt
 
         return []
@@ -65,3 +65,9 @@ class CoppService():
             return dt
 
         return []
+
+    def getCourseRunDetails(self, course_key):
+        discovery_api = DiscoveryApiClient()
+
+        result = discovery_api.get_course_run_detail(course_key)
+        return result
