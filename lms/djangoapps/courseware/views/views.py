@@ -981,24 +981,23 @@ def course_about(request, course_id):
         required_doc_types = coppService.getRequiredDocTypes(course_doc_types, student_doc_types, doc_types)
         exist_doc_types = coppService.getExistDocTypes(course_doc_types, student_doc_types, doc_types)
 
-        print(required_doc_types)
-        print(exist_doc_types)
-
         regex_pattern = r'(?<=\:).+?(?=\+).+?(?=\+)'
         custom_course_key = re.findall(regex_pattern, course_id)[0]
 
         data = coppService.getCourseRunDetails(custom_course_key)
 
-        exist_course_runs = data.get('course_runs')
+        course_run = None
 
-        if exist_course_runs is None:
-            pass
+        if data.get('detail') == 'Not found.' or data.get('detail') is None:
+            course_run = None
         else:
-            course_run = next((course_run for course_run in data["course_runs"] if course_run["key"] == course_id), False)
+            print(data)
+            exist_course_runs = data.get('course_runs')
 
-        if data.get['detail'] is not None:
-            pass
-        else:
+            if exist_course_runs is not None:
+                course_run = next((course_run for course_run in data["course_runs"] if course_run["key"] == course_id),
+                                  False)
+
             course_run["course_key"] = data["key"]
             course_run["owners"] = data["owners"]
             course_run["level_type"] = data["level_type"]

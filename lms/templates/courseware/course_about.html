@@ -56,7 +56,7 @@ from six import string_types
   <script src="${static.url('js/course_info.js')}"></script>
 </%block>
 
-<%block name="pagetitle">${custom_course_details.get('title')}</%block>
+<%block name="pagetitle">О курсе</%block>
 
 <style>
     .jumbotron-brand {
@@ -179,249 +179,269 @@ from six import string_types
 </style>
 
 <main id="main" aria-label="Content" tabindex="-1" class="">
-    <div class="home">
-        <%block name="course_about_header">
-        <div class="jumbotron-brand d-flex justify-content-between align-items-center">
-            <div class="ml-5">
-                <h1 class="text-white font-weight-bold text-left brand-title">${custom_course_details.get('title')}</h1>
-                <%block name="course_about_important_dates">
-                <div class="d-flex flex-row justify-content-start brand-short-description">
-                    <p>${ custom_course_details.get('short_description') | n }</p>
+
+    %if custom_course_details != None:
+        <%
+            title = custom_course_details.get('title')
+            short_description = custom_course_details.get('short_description')
+        %>
+        <div class="home">
+            <%block name="course_about_header">
+            <div class="jumbotron-brand d-flex justify-content-between align-items-center">
+                <div class="ml-5">
+                    %if title != None:
+                        <h1 class="text-white font-weight-bold text-left brand-title">${title}</h1>
+                    %endif
+
+                    <%block name="course_about_important_dates">
+                        %if title != None:
+                            <div class="d-flex flex-row justify-content-start brand-short-description">
+                                <p>${ short_description | n }</p>
+                            </div>
+                        %endif
+                    </%block>
+
+                    <div class="main-cta mt-5">
+                    %if user.is_authenticated and registered:
+                        %if show_courseware_link:
+                            <a type="button" class="btn btn-brand-white" href="${course_target}">
+                        %endif
+                                <span class="register disabled">${_("Вы записаны на этот курс")}</span>
+                                %if show_courseware_link:
+                                <strong>${_("Посмотреть курс")}</strong>
+                            </a>
+                                %endif
+                    % elif is_course_full:
+                        <span class="register disabled">${_("Курс пройден")}</span>
+                    % elif (is_courses_default_invite_only_enabled() or invitation_only) and not can_enroll:
+                        <span class="register disabled">${_("Только по приглашению")}</span>
+                        ## Shib courses need the enrollment button to be displayed even when can_enroll is False,
+                        ## because AnonymousUsers cause can_enroll for shib courses to be False, but we need them to be able to click
+                        ## so that they can register and become a real user that can enroll.
+                    % elif not is_shib_course and not can_enroll:
+                        <span class="register disabled">${_("Запись закрыта")}</span>
+                    %elif allow_anonymous:
+                        %if show_courseware_link:
+                            <a type="button" class="btn btn-brand-white" href="${course_target}"><strong>${_("Посмотреть курс")}</strong></a>
+                        %endif
+                    %elif is_document_required:
+                        <a type="button" class="btn btn-brand-white" href="https://account.copp.knotta.ru/#documents" target="_blank" class="register">${_("Подать документы")}</a>
+                    %else:
+                        <%
+                            if ecommerce_checkout:
+                                reg_href = ecommerce_checkout_link
+                            else:
+                                reg_href="#"
+                            if single_paid_mode:
+                                href_class = "add-to-cart"
+                            else:
+                                href_class = "register"
+                        %>
+                        <a type="button" class="btn btn-brand-white" href="${reg_href}" class="${href_class}">${_("Записаться")}</a>
+                        <div id="register_error"></div>
+                    %endif
                 </div>
-
-                </%block>
-                <div class="main-cta mt-5">
-                %if user.is_authenticated and registered:
-                    %if show_courseware_link:
-                        <a type="button" class="btn btn-brand-white" href="${course_target}">
-                    %endif
-                            <span class="register disabled">${_("Вы записаны на этот курс")}</span>
-                            %if show_courseware_link:
-                            <strong>${_("Посмотреть курс")}</strong>
-                        </a>
-                            %endif
-                % elif is_course_full:
-                    <span class="register disabled">${_("Курс пройден")}</span>
-                % elif (is_courses_default_invite_only_enabled() or invitation_only) and not can_enroll:
-                    <span class="register disabled">${_("Только по приглашению")}</span>
-                    ## Shib courses need the enrollment button to be displayed even when can_enroll is False,
-                    ## because AnonymousUsers cause can_enroll for shib courses to be False, but we need them to be able to click
-                    ## so that they can register and become a real user that can enroll.
-                % elif not is_shib_course and not can_enroll:
-                    <span class="register disabled">${_("Запись закрыта")}</span>
-                %elif allow_anonymous:
-                    %if show_courseware_link:
-                        <a type="button" class="btn btn-brand-white" href="${course_target}"><strong>${_("Посмотреть курс")}</strong></a>
-                    %endif
-                %elif is_document_required:
-                    <a type="button" class="btn btn-brand-white" href="https://account.copp.knotta.ru/#documents" target="_blank" class="register">${_("Подать документы")}</a>
-                %else:
+                </div>
+                <div class="mr-5 h-75">
                     <%
-                        if ecommerce_checkout:
-                            reg_href = ecommerce_checkout_link
+                        image = custom_course_details.get('image')
+
+                        if image is None:
+                            course_image_url = "static/images/brand/img-logo_full.svg"
+                            background = 'background: #553C8B'
                         else:
-                            reg_href="#"
-                        if single_paid_mode:
-                            href_class = "add-to-cart"
-                        else:
-                            href_class = "register"
+                            course_image_url = custom_course_details['image']['src']
+                            background = 'background: '
                     %>
-                    <a type="button" class="btn btn-brand-white" href="${reg_href}" class="${href_class}">${_("Записаться")}</a>
-                    <div id="register_error"></div>
-                %endif
-            </div>
-            </div>
-            <div class="mr-5 h-75">
-                <%
-                    if custom_course_details['image']['src'] is None:
-                        course_image_url = "static/images/brand/img-logo_full.svg"
-                        background = 'background: #553C8B'
-                    else:
-                        course_image_url = custom_course_details['image']['src']
-                        background = 'background: '
-                %>
 
-                %if custom_course_details.get('video') != None:
-                    <a href="#video-modal" class="media" rel="leanModal">
-                        <img class="rounded-4 float-right img-fluid" style="height: 80%; width: 100%" src="${custom_course_details.get('video')}" alt="" />
-                        <div class="play-intro"></div>
-                    </a>
-                %else:
-                    <img class="rounded-4 float-right img-fluid" style="max-width:100%;height: auto;max-height: 100%;" src="${course_image_url}" alt="" />
-                % endif
+                    %if custom_course_details.get('video') != None:
+                        <a href="#video-modal" class="media" rel="leanModal">
+                            <img class="rounded-4 float-right img-fluid" style="height: 80%; width: 100%" src="${custom_course_details.get('video')}" alt="" />
+                            <div class="play-intro"></div>
+                        </a>
+                    %else:
+                        <img class="rounded-4 float-right img-fluid" style="max-width:100%;height: auto;max-height: 100%;" src="${course_image_url}" alt="" />
+                    % endif
+                </div>
             </div>
+            </%block>
         </div>
-        </%block>
-    </div>
 
-    <div class="d-flex flex-row">
-        <div class="ml-5 mb-5 flex-grow-1">
-            %if custom_course_details.get('full_description') != None:
-                <section class="about mb-3">
-                    <h2 class="">💡 ${_("Об этом курсе")}</h2>
-                    ${ custom_course_details.get('full_description') | n }
-                </section>
-            %endif
-
-            %if custom_course_details.get('outcome') != None:
-                <section class="outcome mb-3">
-                    <h2 class="">${_("Результат")}</h2>
-                    ${ custom_course_details.get('outcome') | n }
-                </section>
-            %endif
-
-            %if custom_course_details.get('syllabus_raw') != None:
-                <section class="syllabus mb-3">
-                    <h2>${_("Учебный план")}</h2>
-                    ${ custom_course_details.get('syllabus_raw') | n }
-                </section>
-            %endif
-
-            %if len(custom_course_details.get('staff')) > 0:
-                <section class="course-staff mb-3">
-                    <h2>${_("Преподаватели курса")}</h2>
-                    <div class="d-flex flex-wrap flex-row">
-                        <%
-                            staff = custom_course_details.get('staff')
-                        %>
-                        %if len(staff) > 0:
-                            %for instructor in staff:
-                                <div class="card mr-4 border-0">
-                                    <div class="card-horizontal">
-                                        %if instructor.get('profile_image') != None:
-                                            <div class="img-square-wrapper">
-                                                <img class="float-left rounded-circle" src="${instructor['profile_image']['medium']['url']}" align="left" alt="Изображение преподавателя">
-<!--                                            <img class="float-left rounded-circle" width="100px" height="100px" src="${image}" align="left" alt="Course Staff Image #1">-->
-                                            </div>
-                                            <div class="card-body">
-                                                <h5 class="card-title">${instructor["given_name"]} ${instructor["family_name"]}</h5>
-                                                <p class="card-text">${instructor["position"]["title"]} ${instructor["position"]["organization_name"]}</p>
-<!--                                            <p>${instructor["bio"]}</p>-->
-                                            </div>
-                                        %endif
-                                    </div>
-                                </div>
-                            %endfor
-                        %endif
-                    </div>
-                </section>
-            %endif
-
-            %if custom_course_details.get('faq') != None:
-                <section class="faq mb-3">
-                    <h2>${_("Часто задаваемые вопросы")}</h2>
-                    ${ custom_course_details.get('faq') | n }
-                </section>
-            %endif
-
-        </div>
-        <div class="mr-4 w-35">
-            <div class="sticky-top">
-                <section class="mt-4">
-                    <ul class="list-group list-group-flush mt-0">
-                        <%
-                            if custom_course_details.get('weeks_to_complete') != None:
-                                days = str(custom_course_details.get('weeks_to_complete') * 5)
-                                if custom_course_details.get('min_effort') != None and custom_course_details.get('max_effort') != None:
-                                    hours = str( custom_course_details.get('min_effort') + custom_course_details.get('max_effort') / 2 )
-                                    effort = days + ' д. ' + 'по ' + hours + ' ч.'
-                                else:
-                                    effort = days + ' д.'
-                        %>
-                        %if custom_course_details.get('weeks_to_complete') != None:
-                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
-                                <img class="mr-2" src="../../static/images/brand/icon-time.svg">
-                                ${effort}
-                            </li>
-                        %endif
-                        %if custom_course_details.get('owners')[0]['name'] != None:
-                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
-                                <img class="mr-2" src="../../static/images/brand/icon-course.svg">
-                                Организация: ${custom_course_details.get('owners')[0]['name']}
-                            </li>
-                        %endif
-                        <%
-                            pacing_type = custom_course_details.get('pacing_type')
-                            if pacing_type != None:
-                                if pacing_type == 'instructor_paced':
-                                    pacing_type = 'С преподавателем'
-                                else:
-                                    pacing_type = 'Самостоятельно'
-                        %>
-                        %if pacing_type != None:
-                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
-                                <img class="mr-2" src="../../static/images/brand/icon-user.svg">
-                                Формат: ${pacing_type}
-                            </li>
-                        %endif
-                         %if custom_course_details.get('level_type') != None:
-                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
-                                <img class="mr-2" src="../../static/images/brand/icon-calendar.svg">
-                                Уровень: ${custom_course_details.get('level_type')}
-                            </li>
-                        %endif
-                        %if custom_course_details.get('first_enrollable_paid_seat_price') != None:
-                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
-                                <span class="text-brand-main mr-2 icon fa fa-money" aria-hidden="true"></span>
-                                Цена: ${custom_course_details.get('first_enrollable_paid_seat_price')} руб.
-                            </li>
-                        %else:
-                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
-                                <span class="text-brand-main mr-2 icon fa fa-money" aria-hidden="true"></span>
-                                Цена: Бесплатно
-                            </li>
-                        %endif
-                        %if not is_document_required:
-                            <a type="button" class="btn btn-brand-dark my-3 mx-4" href="https://account.copp.knotta.ru/#documents" target="_blank" class="register">${_("Записаться")}</a>
-                        %endif
-                    </ul>
-                </section>
-                %if is_document_required:
-                    <section class="pb-5">
-                        <h4 class="mt-4 mb-3">Необходимые документы</h4>
-                        <div class="d-flex flex-column justify-content-center sticky-menu">
-                            <ul class="list-group list-group-flush">
-                                % for doc in required_doc_types:
-                                    <li class="pl-0 list-group-item d-flex justify-content-between align-items-center list-group-item-light">
-                                        ${doc['label']}
-                                        <img class="ml-4" src="../../static/images/brand/icon-warning.svg">
-                                    </li>
-                                % endfor
-                                % for doc in exist_doc_types:
-                                    <li class="pl-0 list-group-item d-flex justify-content-between align-items-center list-group-item-light">
-                                        ${doc['label']}
-                                        <img class="ml-4" src="../../static/images/brand/icon-verify.svg">
-                                    </li>
-                                % endfor
-                            </ul>
-                            <a type="button" class="btn btn-brand-dark my-3 mx-4" href="https://account.copp.knotta.ru" class="register">${_("Подать документы")}</a>
-                        </div>
+        <div class="d-flex flex-row">
+            <div class="ml-5 mb-5 flex-grow-1">
+                %if custom_course_details.get('full_description') != None:
+                    <section class="about mb-3">
+                        <h2 class="">💡 ${_("Об этом курсе")}</h2>
+                        ${ custom_course_details.get('full_description') | n }
                     </section>
                 %endif
+
+                %if custom_course_details.get('outcome') != None:
+                    <section class="outcome mb-3">
+                        <h2 class="">${_("Результат")}</h2>
+                        ${ custom_course_details.get('outcome') | n }
+                    </section>
+                %endif
+
+                %if custom_course_details.get('syllabus_raw') != None:
+                    <section class="syllabus mb-3">
+                        <h2>${_("Учебный план")}</h2>
+                        ${ custom_course_details.get('syllabus_raw') | n }
+                    </section>
+                %endif
+
+                <%
+                    staff = custom_course_details.get('staff')
+                %>
+
+                %if staff != None:
+                    %if len(staff) > 0:
+                        <section class="course-staff mb-3">
+                            <h2>${_("Преподаватели курса")}</h2>
+                            <div class="d-flex flex-wrap flex-row">
+                                %for instructor in staff:
+                                    <div class="card mr-4 border-0">
+                                        <div class="card-horizontal">
+                                            %if instructor.get('profile_image') != None:
+                                                <div class="img-square-wrapper">
+                                                    <img class="float-left rounded-circle" src="${instructor['profile_image']['medium']['url']}" align="left" alt="Изображение преподавателя">
+    <!--                                            <img class="float-left rounded-circle" width="100px" height="100px" src="${image}" align="left" alt="Course Staff Image #1">-->
+                                                </div>
+                                                <div class="card-body">
+                                                    <h5 class="card-title">${instructor["given_name"]} ${instructor["family_name"]}</h5>
+                                                    <p class="card-text">${instructor["position"]["title"]} ${instructor["position"]["organization_name"]}</p>
+    <!--                                            <p>${instructor["bio"]}</p>-->
+                                                </div>
+                                            %endif
+                                        </div>
+                                    </div>
+                                %endfor
+                            </div>
+                        </section>
+                    %endif
+                %endif
+
+                %if custom_course_details.get('faq') != None:
+                    <section class="faq mb-3">
+                        <h2>${_("Часто задаваемые вопросы")}</h2>
+                        ${ custom_course_details.get('faq') | n }
+                    </section>
+                %endif
+
+            </div>
+            <div class="mr-4 w-35">
+                <div class="sticky-top">
+                    <section class="mt-4">
+                        <ul class="list-group list-group-flush mt-0">
+                            <%
+                                if custom_course_details.get('weeks_to_complete') != None:
+                                    days = str(custom_course_details.get('weeks_to_complete') * 5)
+                                    if custom_course_details.get('min_effort') != None and custom_course_details.get('max_effort') != None:
+                                        hours = str( custom_course_details.get('min_effort') + custom_course_details.get('max_effort') / 2 )
+                                        effort = days + ' д. ' + 'по ' + hours + ' ч.'
+                                    else:
+                                        effort = days + ' д.'
+                            %>
+                            %if custom_course_details.get('weeks_to_complete') != None:
+                                <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                    <img class="mr-2" src="../../static/images/brand/icon-time.svg">
+                                    ${effort}
+                                </li>
+                            %endif
+
+                            <%
+                                owners = custom_course_details.get('owners')
+                            %>
+
+                            %if owners != None and len(owners) > 0:
+                                <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                    <img class="mr-2" src="../../static/images/brand/icon-course.svg">
+                                    Организация: ${custom_course_details.get('owners')[0]['name']}
+                                </li>
+                            %endif
+
+                            <%
+                                pacing_type = custom_course_details.get('pacing_type')
+                                if pacing_type != None:
+                                    if pacing_type == 'instructor_paced':
+                                        pacing_type = 'С преподавателем'
+                                    else:
+                                        pacing_type = 'Самостоятельно'
+                            %>
+                            %if pacing_type != None:
+                                <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                    <img class="mr-2" src="../../static/images/brand/icon-user.svg">
+                                    Формат: ${pacing_type}
+                                </li>
+                            %endif
+                             %if custom_course_details.get('level_type') != None:
+                                <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                    <img class="mr-2" src="../../static/images/brand/icon-calendar.svg">
+                                    Уровень: ${custom_course_details.get('level_type')}
+                                </li>
+                            %endif
+                            %if custom_course_details.get('first_enrollable_paid_seat_price') != None:
+                                <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                    <span class="text-brand-main mr-2 icon fa fa-money" aria-hidden="true"></span>
+                                    Цена: ${custom_course_details.get('first_enrollable_paid_seat_price')} руб.
+                                </li>
+                            %else:
+                                <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                    <span class="text-brand-main mr-2 icon fa fa-money" aria-hidden="true"></span>
+                                    Цена: Бесплатно
+                                </li>
+                            %endif
+                            %if not is_document_required:
+                                <a type="button" class="btn btn-brand-dark my-3 mx-4" href="https://account.copp.knotta.ru/#documents" target="_blank" class="register">${_("Записаться")}</a>
+                            %endif
+                        </ul>
+                    </section>
+                    %if is_document_required:
+                        <section class="pb-5">
+                            <h4 class="mt-4 mb-3">Необходимые документы</h4>
+                            <div class="d-flex flex-column justify-content-center sticky-menu">
+                                <ul class="list-group list-group-flush">
+                                    % for doc in required_doc_types:
+                                        <li class="pl-0 list-group-item d-flex justify-content-between align-items-center list-group-item-light">
+                                            ${doc['label']}
+                                            <img class="ml-4" src="../../static/images/brand/icon-warning.svg">
+                                        </li>
+                                    % endfor
+                                    % for doc in exist_doc_types:
+                                        <li class="pl-0 list-group-item d-flex justify-content-between align-items-center list-group-item-light">
+                                            ${doc['label']}
+                                            <img class="ml-4" src="../../static/images/brand/icon-verify.svg">
+                                        </li>
+                                    % endfor
+                                </ul>
+                                <a type="button" class="btn btn-brand-dark my-3 mx-4" href="https://account.copp.knotta.ru" class="register">${_("Подать документы")}</a>
+                            </div>
+                        </section>
+                    %endif
+                </div>
             </div>
         </div>
-    </div>
-## Need to put this hidden form on the page so that the registration button works.
-## Since it's no harm to display a hidden form, we display it with the most permissive conditional
-## which is when the student is not registered.
-%if active_reg_button or is_shib_course:
-  <div style="display: none;">
-    <form id="class_enroll_form" method="post" data-remote="true" action="${reverse('change_enrollment')}">
-      <fieldset class="enroll_fieldset">
-        <legend class="sr">${pgettext("self","Enroll")}</legend>
-        <input name="course_id" type="hidden" value="${course.id}">
-        <input name="enrollment_action" type="hidden" value="enroll">
-      </fieldset>
-      <div class="submit">
-        <input name="submit" type="submit" value="${pgettext('self','enroll')}">
+
+    %if active_reg_button or is_shib_course:
+      <div style="display: none;">
+        <form id="class_enroll_form" method="post" data-remote="true" action="${reverse('change_enrollment')}">
+          <fieldset class="enroll_fieldset">
+            <legend class="sr">${pgettext("self","Enroll")}</legend>
+            <input name="course_id" type="hidden" value="${course.id}">
+            <input name="enrollment_action" type="hidden" value="enroll">
+          </fieldset>
+          <div class="submit">
+            <input name="submit" type="submit" value="${pgettext('self','enroll')}">
+          </div>
+        </form>
       </div>
-    </form>
-  </div>
+    %endif
+
+    <%include file="../video_modal.html" />
+
+    <%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
+        DateUtilFactory.transform(iterationKey=".localized_datetime");
+    </%static:require_module_async>
 %endif
-
-<%include file="../video_modal.html" />
-
-<%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
-    DateUtilFactory.transform(iterationKey=".localized_datetime");
-</%static:require_module_async>
 </main>
+

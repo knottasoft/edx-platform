@@ -353,8 +353,6 @@ def get_course_about_section(request, course, section_key):
                 course=course
             )
 
-            print(about_module)
-
             html = ''
 
             if about_module is not None:
