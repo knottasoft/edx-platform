@@ -181,14 +181,16 @@ from six import string_types
 <main id="main" aria-label="Content" tabindex="-1" class="">
 
     %if custom_course_details != None:
-        <%
-            title = custom_course_details.get('title')
-            short_description = custom_course_details.get('short_description')
-        %>
+
         <div class="home">
             <%block name="course_about_header">
+            <%
+                title = custom_course_details.get('title')
+                short_description = custom_course_details.get('short_description')
+            %>
             <div class="jumbotron-brand d-flex justify-content-between align-items-center">
                 <div class="ml-5">
+
                     %if title != None:
                         <h1 class="text-white font-weight-bold text-left brand-title">${title}</h1>
                     %endif
@@ -245,12 +247,13 @@ from six import string_types
                 <div class="mr-5 h-75">
                     <%
                         image = custom_course_details.get('image')
+                        course_image_url = ''
 
-                        if image is None:
+                        if image is None or len(image) == 0:
                             course_image_url = "static/images/brand/img-logo_full.svg"
                             background = 'background: #553C8B'
                         else:
-                            course_image_url = custom_course_details['image']['src']
+                            course_image_url = image['src']
                             background = 'background: '
                     %>
 
@@ -305,12 +308,10 @@ from six import string_types
                                             %if instructor.get('profile_image') != None:
                                                 <div class="img-square-wrapper">
                                                     <img class="float-left rounded-circle" src="${instructor['profile_image']['medium']['url']}" align="left" alt="Изображение преподавателя">
-    <!--                                            <img class="float-left rounded-circle" width="100px" height="100px" src="${image}" align="left" alt="Course Staff Image #1">-->
                                                 </div>
                                                 <div class="card-body">
                                                     <h5 class="card-title">${instructor["given_name"]} ${instructor["family_name"]}</h5>
                                                     <p class="card-text">${instructor["position"]["title"]} ${instructor["position"]["organization_name"]}</p>
-    <!--                                            <p>${instructor["bio"]}</p>-->
                                                 </div>
                                             %endif
                                         </div>

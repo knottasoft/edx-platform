@@ -988,10 +988,7 @@ def course_about(request, course_id):
 
         course_run = None
 
-        if data.get('detail') == 'Not found.' or data.get('detail') is None:
-            course_run = None
-        else:
-            print(data)
+        if data is not None:
             exist_course_runs = data.get('course_runs')
 
             if exist_course_runs is not None:
