@@ -610,9 +610,9 @@ msgstr ""
 #, python-format
 msgid "%(count)d student account was unlocked."
 msgid_plural "%(count)d student accounts were unlocked."
-msgstr[0] "%(count)dаккаунт студента разблокирован"
-msgstr[1] "%(count)dаккаунты студента разблокированы"
-msgstr[2] "%(count)dаккаунты студента разблокированы"
+msgstr[0] "%(count)d аккаунт студента разблокирован"
+msgstr[1] "%(count)d аккаунты студента разблокированы"
+msgstr[2] "%(count)d аккаунты студента разблокированы"
 msgstr[3] "%(count)d аккаунты студента разблокированы"
 
 #: common/djangoapps/student/admin.py

@@ -2,7 +2,7 @@
 Courseware views functions
 """
 
-
+import re
 import json
 import logging
 from collections import OrderedDict, namedtuple
@@ -981,7 +981,36 @@ def course_about(request, course_id):
         required_doc_types = coppService.getRequiredDocTypes(course_doc_types, student_doc_types, doc_types)
         exist_doc_types = coppService.getExistDocTypes(course_doc_types, student_doc_types, doc_types)
 
-        custom_course_details = coppService.getCourseRunDetails(course_id)
+        print(required_doc_types)
+        print(exist_doc_types)
+
+        regex_pattern = r'(?<=\:).+?(?=\+).+?(?=\+)'
+        custom_course_key = re.findall(regex_pattern, course_id)[0]
+
+        data = coppService.getCourseRunDetails(custom_course_key)
+
+        exist_course_runs = data.get('course_runs')
+
+        if exist_course_runs is None:
+            pass
+        else:
+            course_run = next((course_run for course_run in data["course_runs"] if course_run["key"] == course_id), False)
+
+        if data.get['detail'] is not None:
+            pass
+        else:
+            course_run["course_key"] = data["key"]
+            course_run["owners"] = data["owners"]
+            course_run["level_type"] = data["level_type"]
+            course_run["subjects"] = data["subjects"]
+            course_run["subjects"] = data["subjects"]
+            course_run["prerequisites_raw"] = data["prerequisites_raw"]
+            course_run["syllabus_raw"] = data["syllabus_raw"]
+            course_run["outcome"] = data["outcome"]
+            course_run["additional_information"] = data["additional_information"]
+            course_run["faq"] = data["faq"]
+            course_run["collaborators"] = data["collaborators"]
+            course_run["programs"] = data["programs"]
 
         if len(required_doc_types) > 0:
             is_document_required = True
@@ -1033,7 +1062,7 @@ def course_about(request, course_id):
             'is_document_required': is_document_required,
             'required_doc_types':required_doc_types,
             'exist_doc_types':exist_doc_types,
-            'custom_course_details': custom_course_details,
+            'custom_course_details': course_run,
         }
 
         return render_to_response('courseware/course_about.html', context)

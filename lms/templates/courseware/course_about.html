@@ -56,7 +56,7 @@ from six import string_types
   <script src="${static.url('js/course_info.js')}"></script>
 </%block>
 
-<%block name="pagetitle">${course.display_name_with_default}</%block>
+<%block name="pagetitle">${custom_course_details.get('title')}</%block>
 
 <style>
     .jumbotron-brand {
@@ -68,145 +68,153 @@ from six import string_types
         font-family: 'Montserrat', sans-serif;
         line-height: 140%;
     }
+
+    .btn {
+        border-radius: 2px;
+    }
+
+    .btn-brand-dark {
+        background-color: #553C8B;
+        color: white;
+    }
+
+    h2 {
+        /* Heading 2 */
+        font-family: 'Roboto', sans-serif;
+        line-height: 30px;
+        display: flex;
+        align-items: center;
+        letter-spacing: 0.01em;
+
+        /* Typography/Black */
+        color: #333333;
+
+        /* Inside Auto Layout */
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+        margin: 24px 0px;
+    }
+
+    h4 {
+        font-family: 'Roboto', sans-serif;
+        font-style: normal;
+    }
+
+    h5 {
+
+    }
+
+    h6 {
+        font-family: 'Roboto', sans-serif;
+        font-style: normal;
+    }
+
+
+
+    p {
+        /* Regular text */
+        font-family: 'Roboto', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 16px;
+        line-height: 160%;
+        /* or 26px */
+
+
+        /* Typography/Black */
+        color: #333333;
+
+
+        /* Inside Auto Layout */
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+        margin: 24px 0px;
+    }
+
+    li {
+        /* Regular text */
+        font-family: 'Roboto', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 16px;
+        line-height: 160%;
+        /* or 26px */
+
+        /* Typography/Black */
+        color: #333333;
+
+        /* Inside Auto Layout */
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+    }
+
+    .sticky-menu {
+        background-color: #F6F7FA;
+    }
+
+    .list-group {
+        border-radius: 8px;
+        background-color: #F6F7FA;
+    }
+
+    .list-group-item-light {
+        color: #333333;
+        background-color: #F6F7FA;
+        margin-left: 24px;
+        margin-right: 24px;
+    }
+
+    .brand-short-description>p {
+        color: white;
+    }
+
+    .card-horizontal {
+        display: flex;
+        flex: 1 1 auto;
+    }
+
 </style>
 
 <main id="main" aria-label="Content" tabindex="-1" class="">
     <div class="home">
         <%block name="course_about_header">
-        <div class="jumbotron-brand d-flex justify-content-start align-items-center">
+        <div class="jumbotron-brand d-flex justify-content-between align-items-center">
             <div class="ml-5">
-                <h1 class="text-white font-weight-bold text-left brand-title">${course.display_name_with_default}</h1>
+                <h1 class="text-white font-weight-bold text-left brand-title">${custom_course_details.get('title')}</h1>
                 <%block name="course_about_important_dates">
-                <div class="d-flex flex-row justify-content-start">
-                    <div class="d-flex flex-row align-items-center mr-2">
-                        <span class="text-white icon fa fa-info-circle pr-2" aria-hidden="true"></span>
-                        <p class="text-white pr-2">${_("Course Number")}</p>
-                        <span class="text-white pr-2">${course.display_number_with_default}</span>
-                    </div>
-                    % if not course.start_date_is_still_default:
-                        <%
-                            course_start_date = course.advertised_start or course.start
-                        %>
-                        <div class="d-flex flex-row mr-2 align-items-center">
-                            <span class="text-white icon fa fa-calendar pr-1" aria-hidden="true"></span>
-                            <p class="text-white pr-1">${_("Classes Start")}</p>
-                            % if isinstance(course_start_date, string_types):
-                                <span class="text-white start-date pr-1">${course_start_date}</span>
-                            % else:
-                                <%
-                                course_date_string = course_start_date.strftime('%Y-%m-%dT%H:%M:%S%z')
-                                %>
-                                <span class="text-white start-date localized_datetime pr-1" data-format="shortDate" data-datetime="${course_date_string}" data-language="${LANGUAGE_CODE}"></span>
-                            % endif
-                        </div>
-                    % endif
-                    ## We plan to ditch end_date (which is not stored in course metadata),
-                    ## but for backwards compatibility, show about/end_date blob if it exists.
-                    % if course.end:
-                        <%
-                            course_end_date = course.end
-                        %>
-                        <div class="d-flex flex-row mr-2 align-items-center">
-                            <span class="text-white icon fa fa-calendar" aria-hidden="true"></span>
-                            <p class="text-white pr-1">${_("Classes End")}</p>
-                            % if isinstance(course_end_date, string_types):
-                                <span class="text-white pr-1 final-date">${course_end_date}</span>
-                            % else:
-                                <%
-                                    course_date_string = course_end_date.strftime('%Y-%m-%dT%H:%M:%S%z')
-                                %>
-                                <span class="text-white pr-1 final-date localized_datetime" data-format="shortDate" data-datetime="${course_date_string}" data-language="${LANGUAGE_CODE}"></span>
-                            % endif
-                        </div>
-                    % endif
-                    % if get_course_about_section(request, course, "effort"):
-                        <div class="d-flex flex-row mr-2 align-items-center">
-                            <span class="text-white icon fa fa-pencil pr-1" aria-hidden="true"></span>
-                            <p class="text-white pr-1">${_("Estimated Effort")}</p>
-                            <span class="text-white pr-1 effort">${get_course_about_section(request, course, "effort")}</span>
-                        </div>
-                    % endif
-                        <div class="d-flex flex-row mr-2 align-items-center">
-                            <span class="text-white icon fa fa-clock-o" aria-hidden="true"></span>
-                            <p class="text-white pr-1">${_('Course Length')}</p>
-                            <span class="text-white pr-1 course-length">${_('{number} weeks').format(number=15)}</span>
-                        </div>
-                    %if course_price and (is_cosmetic_price_enabled):
-                        <div class="d-flex flex-row mr-2 align-items-center">
-                            <span class="text-white pr-1 icon fa fa-money" aria-hidden="true"></span>
-                            <p class="text-white pr-1">${_("Price")}</p>
-                            <span class="text-white pr-1">${course_price}</span>
-                        </div>
-                    %endif
-                    % if pre_requisite_courses:
-                        <% prc_target = reverse('about_course', args=[text_type(pre_requisite_courses[0]['key'])]) %>
-                        <div class="d-flex flex-row align-items-center mr-2">
-                            <span class="text-white pr-1 icon fa fa-list-ul" aria-hidden="true"></span>
-                            <p class="text-white pr-1">${_("Prerequisites")}</p>
-                            ## Multiple pre-requisite courses are not supported on frontend that's why we are pulling first element
-                            <span class="text-white pr-1 pre-requisite">
-                                <a href="${prc_target}">${pre_requisite_courses[0]['display']}</a>
-                            </span>
-                            <p class="text-white tip pr-1">
-                                ${Text(_("You must successfully complete {link_start}{prc_display}{link_end} before you begin this course.")).format(
-                                link_start=HTML('<a href="{}">').format(prc_target),
-                                link_end=HTML('</a>'),
-                                prc_display=pre_requisite_courses[0]['display'],
-                                )}
-                            </p>
-                        </div>
-                    % endif
-                    % if get_course_about_section(request, course, "prerequisites"):
-                        <div class="d-flex flex-row mr-2 align-items-center">
-                            <span class="text-white pr-1 icon fa fa-book" aria-hidden="true"></span>
-                            <p class="text-white pr-1">${_("Requirements")}</p>
-                            <span class="text-white pr-1 prerequisites">${get_course_about_section(request, course, "prerequisites")}</span>
-                        </div>
-                    % endif
+                <div class="d-flex flex-row justify-content-start brand-short-description">
+                    <p>${ custom_course_details.get('short_description') | n }</p>
                 </div>
+
                 </%block>
                 <div class="main-cta mt-5">
                 %if user.is_authenticated and registered:
                     %if show_courseware_link:
                         <a type="button" class="btn btn-brand-white" href="${course_target}">
                     %endif
-                            <span class="register disabled">${_("You are enrolled in this course")}</span>
+                            <span class="register disabled">${_("Вы записаны на этот курс")}</span>
                             %if show_courseware_link:
-                            <strong>${_("View Course")}</strong>
+                            <strong>${_("Посмотреть курс")}</strong>
                         </a>
                             %endif
                 % elif is_course_full:
-                    <span class="register disabled">${_("Course is full")}</span>
+                    <span class="register disabled">${_("Курс пройден")}</span>
                 % elif (is_courses_default_invite_only_enabled() or invitation_only) and not can_enroll:
-                    <span class="register disabled">${_("Enrollment in this course is by invitation only")}</span>
+                    <span class="register disabled">${_("Только по приглашению")}</span>
                     ## Shib courses need the enrollment button to be displayed even when can_enroll is False,
                     ## because AnonymousUsers cause can_enroll for shib courses to be False, but we need them to be able to click
                     ## so that they can register and become a real user that can enroll.
                 % elif not is_shib_course and not can_enroll:
-                    <span class="register disabled">${_("Enrollment is Closed")}</span>
+                    <span class="register disabled">${_("Запись закрыта")}</span>
                 %elif allow_anonymous:
                     %if show_courseware_link:
-                        <a type="button" class="btn btn-brand-white" href="${course_target}"><strong>${_("View Course")}</strong></a>
+                        <a type="button" class="btn btn-brand-white" href="${course_target}"><strong>${_("Посмотреть курс")}</strong></a>
                     %endif
                 %elif is_document_required:
-                    <a type="button" class="btn btn-brand-white" href="https://account.copp.knotta.ru" class="register">${_("Submit documents")}</a>
-                    <div>
-                        Для записи на курс требуется добавить в личный кабинет следующие документы:
-                    </div>
-                    <ul>
-                        % for doc in required_doc_types:
-                            <li>${doc['label']}</li>
-                        % endfor
-                    </ul>
-
-                    <div>
-                        Подтвержденные документы студента, которые потребуются для записи на курс:
-                    </div>
-                    <ul>
-                        % for doc in exist_doc_types:
-                            <li>${doc['label']}</li>
-                        % endfor
-                    </ul>
+                    <a type="button" class="btn btn-brand-white" href="https://account.copp.knotta.ru/#documents" target="_blank" class="register">${_("Подать документы")}</a>
                 %else:
                     <%
                         if ecommerce_checkout:
@@ -218,125 +226,181 @@ from six import string_types
                         else:
                             href_class = "register"
                     %>
-                    <a type="button" class="btn btn-brand-white" href="${reg_href}" class="${href_class}">${_("Enroll Now")}</a>
+                    <a type="button" class="btn btn-brand-white" href="${reg_href}" class="${href_class}">${_("Записаться")}</a>
                     <div id="register_error"></div>
                 %endif
             </div>
             </div>
-            <div class="mr-5">
+            <div class="mr-5 h-75">
                 <%
-                    if course_image_urls['large'] is None:
+                    if custom_course_details['image']['src'] is None:
                         course_image_url = "static/images/brand/img-logo_full.svg"
                         background = 'background: #553C8B'
                     else:
-                        course_image_url = course_image_urls['large']
+                        course_image_url = custom_course_details['image']['src']
                         background = 'background: '
                 %>
 
-                %if get_course_about_section(request, course, "video"):
+                %if custom_course_details.get('video') != None:
                     <a href="#video-modal" class="media" rel="leanModal">
-                        <img class="rounded-4 float-right" height="80%" src="${course_image_url}" alt="" />
+                        <img class="rounded-4 float-right img-fluid" style="height: 80%; width: 100%" src="${custom_course_details.get('video')}" alt="" />
                         <div class="play-intro"></div>
                     </a>
                 %else:
-                    <img class="rounded-4 float-right" height="100%" src="${course_image_url}" alt="" />
+                    <img class="rounded-4 float-right img-fluid" style="max-width:100%;height: auto;max-height: 100%;" src="${course_image_url}" alt="" />
                 % endif
             </div>
         </div>
         </%block>
     </div>
 
+    <div class="d-flex flex-row">
+        <div class="ml-5 mb-5 flex-grow-1">
+            %if custom_course_details.get('full_description') != None:
+                <section class="about mb-3">
+                    <h2 class="">💡 ${_("Об этом курсе")}</h2>
+                    ${ custom_course_details.get('full_description') | n }
+                </section>
+            %endif
 
-    <div class="container">
-        <section class="about">
-            ${course_details.__dict__}
-            <h2>About This Course</h2>
-            <p>Include your long course description here. The long course description should contain 150-400 words. Я быд здесь</p>
-            <p>This is paragraph 2 of the long course description. Add more paragraphs as needed. Make sure to enclose them in paragraph tags.</p>
-        </section>
+            %if custom_course_details.get('outcome') != None:
+                <section class="outcome mb-3">
+                    <h2 class="">${_("Результат")}</h2>
+                    ${ custom_course_details.get('outcome') | n }
+                </section>
+            %endif
 
-        <section class="prerequisites">
-            <h2>Requirements</h2>
-            <p>Add information about the skills and knowledge students need to take this course.</p>
-        </section>
+            %if custom_course_details.get('syllabus_raw') != None:
+                <section class="syllabus mb-3">
+                    <h2>${_("Учебный план")}</h2>
+                    ${ custom_course_details.get('syllabus_raw') | n }
+                </section>
+            %endif
 
-        <section class="course-staff">
-            <h2>Course Staff</h2>
-            <article class="teacher">
-                <div class="teacher-image">
-                    <img src="/static/images/placeholder-faculty.png" align="left" style="margin:0 20 px 0" alt="Course Staff Image #1">
-                </div>
-                <h3>Staff Member #1</h3>
-                <p>Biography of instructor/staff member #1</p>
-            </article>
-            <article class="teacher">
-                <div class="teacher-image">
-                    <img src="/static/images/placeholder-faculty.png" align="left" style="margin:0 20 px 0" alt="Course Staff Image #2">
-                </div>
-                <h3>Staff Member #2</h3>
-                <p>Biography of instructor/staff member #2</p>
-            </article>
-        </section>
+            %if len(custom_course_details.get('staff')) > 0:
+                <section class="course-staff mb-3">
+                    <h2>${_("Преподаватели курса")}</h2>
+                    <div class="d-flex flex-wrap flex-row">
+                        <%
+                            staff = custom_course_details.get('staff')
+                        %>
+                        %if len(staff) > 0:
+                            %for instructor in staff:
+                                <div class="card mr-4 border-0">
+                                    <div class="card-horizontal">
+                                        %if instructor.get('profile_image') != None:
+                                            <div class="img-square-wrapper">
+                                                <img class="float-left rounded-circle" src="${instructor['profile_image']['medium']['url']}" align="left" alt="Изображение преподавателя">
+<!--                                            <img class="float-left rounded-circle" width="100px" height="100px" src="${image}" align="left" alt="Course Staff Image #1">-->
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="card-title">${instructor["given_name"]} ${instructor["family_name"]}</h5>
+                                                <p class="card-text">${instructor["position"]["title"]} ${instructor["position"]["organization_name"]}</p>
+<!--                                            <p>${instructor["bio"]}</p>-->
+                                            </div>
+                                        %endif
+                                    </div>
+                                </div>
+                            %endfor
+                        %endif
+                    </div>
+                </section>
+            %endif
 
-        <section class="faq">
-            <section class="responses">
-                <h2>Frequently Asked Questions</h2>
-                <article class="response">
-                    <h3>What web browser should I use?</h3>
-                    <p>The Open edX platform works best with current versions of Chrome, Edge, Firefox, Internet Explorer, or Safari.</p>
-                    <p>See our <a href="https://edx.readthedocs.org/projects/open-edx-learner-guide/en/latest/front_matter/browsers.html">list of supported browsers</a> for the most up-to-date information.</p>
-                </article>
+            %if custom_course_details.get('faq') != None:
+                <section class="faq mb-3">
+                    <h2>${_("Часто задаваемые вопросы")}</h2>
+                    ${ custom_course_details.get('faq') | n }
+                </section>
+            %endif
 
-                <article class="response">
-                    <h3>Question #2</h3>
-                    <p>Your answer would be displayed here.</p>
-                </article>
-            </section>
-        </section>
-
-<!--    <%block name="course_about_details">-->
-<!--    <div class="details">-->
-<!--      % if staff_access and studio_url is not None:-->
-<!--        <div class="wrap-instructor-info studio-view">-->
-<!--          <a class="instructor-info-action" href="${studio_url}">${_("View About Page in studio")}</a>-->
-<!--        </div>-->
-<!--      % endif-->
-
-<!--      <div class="inner-wrapper">-->
-<!--        ${clean_dangerous_html(get_course_about_section(request, course, "overview"))}-->
-<!--      </div>-->
-<!--    </div>-->
-<!--    </%block>-->
-
-    <!-- TODO: Нужно переименовать переменные, чтобы не дублировать выше -->
-
-      ## For now, ocw links are the only thing that goes in additional resources
-      % if get_course_about_section(request, course, "ocw_links"):
-      <div class="additional-resources">
-        <header>
-          <h1>${_("Additional Resources")}</h1>
-      </div>
-
-        <div>
-          ## "MITOpenCourseware" should *not* be translated
-          <h2 class="opencourseware">MITOpenCourseware</h2>
-             ${get_course_about_section(request, course, "ocw_links")}
+        </div>
+        <div class="mr-4 w-35">
+            <div class="sticky-top">
+                <section class="mt-4">
+                    <ul class="list-group list-group-flush mt-0">
+                        <%
+                            if custom_course_details.get('weeks_to_complete') != None:
+                                days = str(custom_course_details.get('weeks_to_complete') * 5)
+                                if custom_course_details.get('min_effort') != None and custom_course_details.get('max_effort') != None:
+                                    hours = str( custom_course_details.get('min_effort') + custom_course_details.get('max_effort') / 2 )
+                                    effort = days + ' д. ' + 'по ' + hours + ' ч.'
+                                else:
+                                    effort = days + ' д.'
+                        %>
+                        %if custom_course_details.get('weeks_to_complete') != None:
+                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                <img class="mr-2" src="../../static/images/brand/icon-time.svg">
+                                ${effort}
+                            </li>
+                        %endif
+                        %if custom_course_details.get('owners')[0]['name'] != None:
+                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                <img class="mr-2" src="../../static/images/brand/icon-course.svg">
+                                Организация: ${custom_course_details.get('owners')[0]['name']}
+                            </li>
+                        %endif
+                        <%
+                            pacing_type = custom_course_details.get('pacing_type')
+                            if pacing_type != None:
+                                if pacing_type == 'instructor_paced':
+                                    pacing_type = 'С преподавателем'
+                                else:
+                                    pacing_type = 'Самостоятельно'
+                        %>
+                        %if pacing_type != None:
+                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                <img class="mr-2" src="../../static/images/brand/icon-user.svg">
+                                Формат: ${pacing_type}
+                            </li>
+                        %endif
+                         %if custom_course_details.get('level_type') != None:
+                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                <img class="mr-2" src="../../static/images/brand/icon-calendar.svg">
+                                Уровень: ${custom_course_details.get('level_type')}
+                            </li>
+                        %endif
+                        %if custom_course_details.get('first_enrollable_paid_seat_price') != None:
+                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                <span class="text-brand-main mr-2 icon fa fa-money" aria-hidden="true"></span>
+                                Цена: ${custom_course_details.get('first_enrollable_paid_seat_price')} руб.
+                            </li>
+                        %else:
+                            <li class="pl-0 list-group-item list-group-item-light d-flex align-items-center">
+                                <span class="text-brand-main mr-2 icon fa fa-money" aria-hidden="true"></span>
+                                Цена: Бесплатно
+                            </li>
+                        %endif
+                        %if not is_document_required:
+                            <a type="button" class="btn btn-brand-dark my-3 mx-4" href="https://account.copp.knotta.ru/#documents" target="_blank" class="register">${_("Записаться")}</a>
+                        %endif
+                    </ul>
+                </section>
+                %if is_document_required:
+                    <section class="pb-5">
+                        <h4 class="mt-4 mb-3">Необходимые документы</h4>
+                        <div class="d-flex flex-column justify-content-center sticky-menu">
+                            <ul class="list-group list-group-flush">
+                                % for doc in required_doc_types:
+                                    <li class="pl-0 list-group-item d-flex justify-content-between align-items-center list-group-item-light">
+                                        ${doc['label']}
+                                        <img class="ml-4" src="../../static/images/brand/icon-warning.svg">
+                                    </li>
+                                % endfor
+                                % for doc in exist_doc_types:
+                                    <li class="pl-0 list-group-item d-flex justify-content-between align-items-center list-group-item-light">
+                                        ${doc['label']}
+                                        <img class="ml-4" src="../../static/images/brand/icon-verify.svg">
+                                    </li>
+                                % endfor
+                            </ul>
+                            <a type="button" class="btn btn-brand-dark my-3 mx-4" href="https://account.copp.knotta.ru" class="register">${_("Подать документы")}</a>
+                        </div>
+                    </section>
+                %endif
+            </div>
         </div>
     </div>
-      %endif
-
-    % if sidebar_html_enabled:
-      % if get_course_about_section(request, course, "about_sidebar_html"):
-        <section class="about-sidebar-html">
-          ${get_course_about_section(request, course, "about_sidebar_html")}
-        </section>
-      % endif
-    %endif
-  </div>
-
-  </div>
-</div>
-
 ## Need to put this hidden form on the page so that the registration button works.
 ## Since it's no harm to display a hidden form, we display it with the most permissive conditional
 ## which is when the student is not registered.
@@ -360,3 +424,4 @@ from six import string_types
 <%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
     DateUtilFactory.transform(iterationKey=".localized_datetime");
 </%static:require_module_async>
+</main>

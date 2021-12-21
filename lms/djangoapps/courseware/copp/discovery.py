@@ -18,8 +18,8 @@ class DiscoveryApiClient(BaseOAuthClient):
     def _retrieve_course_run_detail(self, course_run_key):
 
         LOGGER.info('Retrieving course run detail from course-discovery for')
-        response = self.client.get(   
-            f"{DISCOVERY_COURSES_ENDPOINT}/course_runs/{course_run_key}/",
+        response = self.client.get(
+            f"{DISCOVERY_COURSES_ENDPOINT}/courses/{course_run_key}/",
             #f"{DISCOVERY_COURSES_ENDPOINT}/course_runs/course-v1:edX+DemoX+Demo_Course/",
         ).json()
         return response
