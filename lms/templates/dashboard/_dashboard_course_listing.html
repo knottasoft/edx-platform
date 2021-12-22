@@ -254,19 +254,33 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
                   <li class="list-inline-item">
                 <ul class="list-inline mb-0">
                     <li class="list-inline-item"><img src="static/images/brand/icon-calendar.svg" /></li>
-                    <li class="list-inline-item"><p style="font-size: 14px">${_("Organisation")}: ${course_overview.display_org_with_default}</p></li>
+                    <li class="list-inline-item"><p style="font-size: 14px">${_("Код органзации")}: ${course_overview.display_org_with_default}</p></li>
                 </ul>
             </li>
+                    <%
+                        effort = ''
+                        if course_overview.effort == None:
+                            effort = 'Не указано'
+                        else:
+                            effort = course_overview.effort
+                    %>
                   <li class="list-inline-item">
                       <ul class="list-inline  mb-0">
                         <li class="list-inline-item"><img src="static/images/brand/icon-time.svg" /></li>
-                        <li class="list-inline-item"><p style="font-size: 14px">${_("Effort")}: ${course_overview.effort}</p></li>
+                        <li class="list-inline-item"><p style="font-size: 14px">${_("Нагрузка")}: ${course_overview.effort}</p></li>
                       </ul>
                   </li>
+                    <%
+                        pacing = ''
+                        if course_overview.pacing == 'instructor':
+                            pacing = 'C преподавателем'
+                        else:
+                            pacing = 'Самостоятельно'
+                    %>
                   <li class="list-inline-item">
                       <ul class="list-inline  mb-0">
                           <li class="list-inline-item"><img src="static/images/brand/icon-course.svg" /></li>
-                          <li class="list-inline-item"><p style="font-size: 14px">${_("Pacing")}: ${course_overview.pacing}</p></li>
+                          <li class="list-inline-item"><p style="font-size: 14px">${_("Формат")}: ${course_overview.pacing}</p></li>
                       </ul>
                   </li>
                 </ul>
