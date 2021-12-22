@@ -421,19 +421,6 @@ from six import string_types
                             %>
                             <a type="button" class="btn btn-brand-dark register my-3 mx-4" href="${reg_href}" class="${href_class}">${_("Записаться")}</a>
                             <div id="register_error"></div>
-                        %else:
-                            <%
-                                if ecommerce_checkout:
-                                    reg_href = ecommerce_checkout_link
-                                else:
-                                    reg_href="#"
-                                if single_paid_mode:
-                                    href_class = "add-to-cart"
-                                else:
-                                    href_class = "register"
-                            %>
-                            <a type="button" class="btn btn-brand-dark register my-3 mx-4" href="${reg_href}" class="${href_class}">${_("Записаться")}</a>
-                            <div id="register_error"></div>
                         %endif
                     </ul>
                 </section>
