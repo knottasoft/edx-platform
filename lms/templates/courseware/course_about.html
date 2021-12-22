@@ -167,7 +167,7 @@ from six import string_types
         margin-right: 24px;
     }
 
-    .brand-short-description {
+    .brand-short-description>p {
         color: white;
     }
 
@@ -191,7 +191,9 @@ from six import string_types
                     <h1 class="text-white font-weight-bold text-left brand-title">${title}</h1>
                 %endif
                 %if title != None:
-                    <p class="brand-short-description">${ short_description | n }</p>
+                    <div class="brand-short-description">
+                        ${ short_description | n }
+                    </div>
                 %endif
 
                 <div class="main-cta pb-5">
