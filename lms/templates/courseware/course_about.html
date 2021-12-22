@@ -13,6 +13,11 @@ from openedx.core.djangolib.js_utils import js_escaped_string
 from openedx.core.djangolib.markup import clean_dangerous_html, HTML, Text
 from openedx.core.lib.courses import course_image_url
 
+from lms.djangoapps.course_home_api.toggles import course_home_legacy_is_active
+from openedx.features.course_experience import course_home_url_name
+from openedx.features.course_experience.url_helpers import get_learning_mfe_home_url
+from openedx.features.course_experience import course_home_url_name
+
 from six import string_types
 %>
 
@@ -167,7 +172,7 @@ from six import string_types
         margin-right: 24px;
     }
 
-    .brand-short-description {
+    .brand-short-description>p {
         color: white;
     }
 
@@ -179,6 +184,11 @@ from six import string_types
 </style>
 
 <main id="main" aria-label="Content" tabindex="-1" class="">
+
+    <%
+        account_url = settings.ACCOUNT_MICROFRONTEND_URL
+        course_target = reverse(course_home_url_name(course_key), args=[str(course_key)]) if course_home_legacy_is_active(course_key) else get_learning_mfe_home_url(course_key=course_key, view_name="home")
+    %>
     <div class="home">
         <%
             title = custom_course_details.get('title')
@@ -191,7 +201,9 @@ from six import string_types
                     <h1 class="text-white font-weight-bold text-left brand-title">${title}</h1>
                 %endif
                 %if title != None:
-                    <p class="brand-short-description">${ short_description | n }</p>
+                    <div class="brand-short-description">
+                        ${ short_description | n }
+                    </div>
                 %endif
 
                 <div class="main-cta pb-5">
@@ -214,7 +226,7 @@ from six import string_types
                         <a type="button" class="btn btn-brand-white" href="${course_target}"><strong>${_("Посмотреть курс")}</strong></a>
                     %endif
                 %elif is_document_required:
-                    <a type="button" class="btn btn-brand-white" href="https://account.copp.knotta.ru/#documents" target="_blank" class="register">${_("Подать документы")}</a>
+                    <a type="button" class="btn btn-brand-white" href="${account_url}/#documents" target="_blank" class="register">${_("Подать документы")}</a>
                 %else:
                     <%
                         if ecommerce_checkout:

@@ -56,19 +56,32 @@ from six import text_type
         <img width="375px" height="200px" style="${background}" class="card-img-top rounded-brand-top" src="${course_image_url}" alt="${course.display_name_with_default} " />
         <p class="card-title brand-primary mx-4 mt-4 mb-1" style="font-size: 16px; font-weight: bold">${course.display_name_with_default}</p>
         <div class="card-body pt-0 d-flex flex-column align-items-start justify-content-end">
-
             <div class="d-flex flex-column align-items-start mt-auto">
                 <ul class="list-inline mb-0">
                 <li class="list-inline-item"><img src="static/images/brand/icon-calendar.svg" /></li>
-                <li class="list-inline-item"><p style="font-size: 14px">${_("Organisation")}: ${course.display_org_with_default}</p></li>
+                <li class="list-inline-item"><p style="font-size: 14px">${_("Код организации")}: ${course.display_org_with_default}</p></li>
             </ul>
+            <%
+                effort = ''
+                if course.effort == None:
+                    effort = 'Не указано'
+                else:
+                    effort = course.effort
+            %>
             <ul class="list-inline mb-0">
                 <li class="list-inline-item"><img src="static/images/brand/icon-time.svg" /></li>
-                <li class="list-inline-item"><p style="font-size: 14px">${_("Effort")}: ${course.effort}</p></li>
+                <li class="list-inline-item"><p style="font-size: 14px">${_("Нагрузка")}: ${effort}</p></li>
             </ul>
+            <%
+                pacing = ''
+                if course.pacing == 'instructor':
+                    pacing = 'C преподавателем'
+                else:
+                    pacing = 'Самостоятельно'
+            %>
             <ul class="list-inline mb-0">
                 <li class="list-inline-item"><img src="static/images/brand/icon-course.svg" /></li>
-                <li class="list-inline-item"><p style="font-size: 14px">${_("Pacing")}: ${course.pacing}</p></li>
+                <li class="list-inline-item"><p style="font-size: 14px">${_("Формат")}: ${pacing}</p></li>
             </ul>
             <%
             if course.start is not None:

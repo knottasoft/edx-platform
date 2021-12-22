@@ -4,6 +4,8 @@ from django.conf import settings
 BASE_URL = settings.COPP_API_BASE_URL
 REFRESH_TOKEN = settings.COPP_API_REFRESH_TOKEN
 
+print(BASE_URL)
+
 class Api():
 
     def get(self, url, params=None):
