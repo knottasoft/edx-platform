@@ -167,7 +167,7 @@ from six import string_types
         margin-right: 24px;
     }
 
-    .brand-short-description>p {
+    .brand-short-description {
         color: white;
     }
 
@@ -185,18 +185,16 @@ from six import string_types
             short_description = custom_course_details.get('short_description')
         %>
         <div class="jumbotron-brand d-flex justify-content-between align-items-center">
-            <div class="ml-5">
+            <div class="pt-5 px-5 w-75">
 
                 %if title != None:
                     <h1 class="text-white font-weight-bold text-left brand-title">${title}</h1>
                 %endif
                 %if title != None:
-                    <div class="d-flex flex-row justify-content-start brand-short-description">
-                        <p>${ short_description | n }</p>
-                    </div>
+                    <p class="brand-short-description">${ short_description | n }</p>
                 %endif
 
-                <div class="main-cta mt-5">
+                <div class="main-cta pb-5">
                 %if user.is_authenticated and registered:
                     %if show_courseware_link:
                         <a type="button" class="btn btn-brand-white" href="${course_target}">
@@ -233,7 +231,7 @@ from six import string_types
                 %endif
             </div>
             </div>
-            <div class="mr-5 h-75">
+            <div class="mr-5 h-75 d-flex align-items-center">
                 <%
                     image = custom_course_details.get('image')
                     course_image_url = ''
@@ -259,7 +257,7 @@ from six import string_types
     </div>
 
     <div class="d-flex flex-row">
-        <div class="ml-5 mb-5 flex-grow-1">
+        <div class="px-5 mb-5 w-75">
             %if custom_course_details.get('full_description') != None:
                 <section class="about mb-3">
                     <h2 class="">💡 ${_("Об этом курсе")}</h2>
@@ -312,15 +310,14 @@ from six import string_types
 
             %if custom_course_details.get('faq') != None:
                 <section class="faq mb-3">
-                    <h2>${_("Часто задаваемые вопросы")}</h2>
+                    <h2>${_("Ответы на вопросы")}</h2>
                     ${ custom_course_details.get('faq') | n }
                 </section>
             %endif
 
         </div>
-        <div class="mr-4 w-35">
-            <div class="sticky-top">
-                <section class="mt-4">
+        <div class="mr-4 flex-grow-1 sticky-top">
+            <section class="mt-4">
                     <ul class="list-group list-group-flush mt-0">
                         <%
                             if custom_course_details.get('weeks_to_complete') != None:
@@ -407,7 +404,6 @@ from six import string_types
                         </div>
                     </section>
                 %endif
-            </div>
         </div>
     </div>
 

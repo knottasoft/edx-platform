@@ -44,7 +44,7 @@ from six import text_type
     }
 </style>
 
-    <div style="max-width: 300px" class="card rounded-brand-card mb-3" id="${course.id}" role="region" aria-label="${course.display_name_with_default}">
+    <div style="max-width: 300px" class="card rounded-brand-card mb-3 mx-3" id="${course.id}" role="region" aria-label="${course.display_name_with_default}">
         <%
             if course.course_image_url is None or course.course_image_url == "/static/studio/images/pencils.jpg":
                 course_image_url = "static/images/brand/img-logo_full.svg"

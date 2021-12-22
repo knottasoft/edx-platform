@@ -5,14 +5,10 @@
   <section class="highlighted-courses">
 
     % if settings.FEATURES.get('COURSES_ARE_BROWSABLE'):
-      <div class="container container pt-4">
-          <div class="d-flex flex-row flex-wrap">
-              <div class="card-deck">
-                  %for course in courses[:homepage_course_max]:
-                    <%include file="course.html" args="course=course" />
-                  %endfor
-              </div>
-          </div>
+      <div class="container pt-4 d-flex flex-row flex-wrap justify-content-center">
+          %for course in courses[:homepage_course_max]:
+            <%include file="course.html" args="course=course" />
+          %endfor
       </div>
 
 <!--      <section class="container">-->

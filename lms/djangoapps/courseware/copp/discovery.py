@@ -28,7 +28,6 @@ class DiscoveryApiClient(BaseOAuthClient):
         try:
             response = self._retrieve_course_run_detail(course_run_key)
             LOGGER.info('get_course_run_detail %s', course_run_key)
-            LOGGER.info(response)
             return response
 
         except Exception as exc:  # pylint: disable=broad-except
