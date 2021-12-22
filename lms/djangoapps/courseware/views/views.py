@@ -1215,7 +1215,8 @@ def course_about(request, course_id):
             'is_document_required': is_document_required,
             'required_doc_types': required_doc_types,
             'exist_doc_types': exist_doc_types,
-            'custom_course_details': course_run
+            'custom_course_details': course_run,
+            'course_key': course_key
         }
 
         return render_to_response('courseware/course_about.html', context)
