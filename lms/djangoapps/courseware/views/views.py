@@ -2,7 +2,7 @@
 Courseware views functions
 """
 
-
+import re
 import json
 import logging
 from collections import OrderedDict, namedtuple
@@ -912,9 +912,6 @@ def course_about(request, course_id):
     """
     course_key = CourseKey.from_string(course_id)
 
-    print(course_id)
-    print(course_key)
-
     # If a user is not able to enroll in a course then redirect
     # them away from the about page to the dashboard.
     if not can_self_enroll_in_course(course_key):
@@ -984,9 +981,194 @@ def course_about(request, course_id):
         required_doc_types = coppService.getRequiredDocTypes(course_doc_types, student_doc_types, doc_types)
         exist_doc_types = coppService.getExistDocTypes(course_doc_types, student_doc_types, doc_types)
 
+        regex_pattern = r'(?<=\:).+?(?=\+).+?(?=\+)'
+        custom_course_key = re.findall(regex_pattern, course_id)[0]
+
+        data = coppService.getCourseRunDetails(custom_course_key)
+
+        course_run = None
+
+        exist_course_runs = data.get('course_runs')
+
+        if exist_course_runs is not None:
+            course_run = next((course_run for course_run in exist_course_runs if course_run["key"] == course_id), False)
+
+        course_run["course_key"] = data.get("key")
+        course_run["owners"] = data.get("owners")
+        course_run["level_type"] = data.get("level_type")
+        course_run["subjects"] = data.get("subjects")
+        course_run["prerequisites_raw"] = data.get("prerequisites_raw")
+        course_run["syllabus_raw"] = data.get("syllabus_raw")
+        course_run["outcome"] = data.get("outcome")
+        course_run["additional_information"] = data.get("additional_information")
+        course_run["faq"] = data.get("faq")
+        course_run["collaborators"] = data.get("collaborators")
+        course_run["programs"] = data.get("programs")
+
+        # course_run = {
+        #    'key': 'course-v1:copp+commerce-1+3T2021',
+        #    'uuid': 'caee30ed-324c-4288-adeb-87c1174a6269',
+        #    'title': 'Коммерческий курс',
+        #    'external_key': None,
+        #    'image': {
+        #       'src': '/media/media/course/image/e1e7453a-0f45-43de-a2ae-a3ecddff94a5-4f7e41848c57.small.jpeg',
+        #       'description': None,
+        #       'height': None,
+        #       'width': None
+        #    },
+        #    'short_description': '<p>Рекомендуемый лимит символов (включая пробелы) - 500. Осталось 499 символов.</p>',
+        #    'marketing_url': 'course/kommercheskii-kurs-course-v1coppcommerce-13t2021?utm_source=admin&utm_medium=affiliate_partner',
+        #    'seats': [
+        #       {
+        #          'type': 'audit',
+        #          'price': '0.00',
+        #          'currency': 'USD',
+        #          'upgrade_deadline': None,
+        #          'credit_provider': None,
+        #          'credit_hours': None,
+        #          'sku': '877613D',
+        #          'bulk_sku': None
+        #       },
+        #       {
+        #          'type': 'verified',
+        #          'price': '100.00',
+        #          'currency': 'USD',
+        #          'upgrade_deadline': '2021-12-15T23:59:59.099999Z',
+        #          'credit_provider': None,
+        #          'credit_hours': None,
+        #          'sku': '8BB4A28',
+        #          'bulk_sku': None
+        #       }
+        #    ],
+        #    'start': '2021-12-20T09:00:00Z',
+        #    'end': '2021-12-25T09:00:00Z',
+        #    'go_live_date': '2021-12-19T21:00:00Z',
+        #    'enrollment_start': None,
+        #    'enrollment_end': None,
+        #    'pacing_type': 'instructor_paced',
+        #    'type': 'verified',
+        #    'run_type': 'dc6fe364-7444-4de7-b536-4de966a59356',
+        #    'status': 'published',
+        #    'is_enrollable': True,
+        #    'is_marketable': True,
+        #    'course': 'copp+commerce-1',
+        #    'full_description': '<p>Рекомендуемый лимит символов (включая пробелы) - 500. Осталось 499 символов.</p>',
+        #    'announcement': '2021-12-20T20:04:31.515611Z',
+        #    'video': None,
+        #    'content_language': 'en-us',
+        #    'license': '',
+        #    'outcome': '<p>Рекомендуемый лимит символов (включая пробелы) - 500. Осталось 499 символов.</p>',
+        #    'transcript_languages': ['en-us'],
+        #    'instructors': [],
+        #    'staff': [
+        #       {
+        #          'uuid': 'c354a47a-eda9-4585-9108-c6c715a544d3',
+        #          'salutation': None,
+        #          'given_name': 'Артем',
+        #          'family_name': 'Маршалкин',
+        #          'bio': '<p>В 2010 году получен диплом 1 степени в номинации «Статистика в сельском хозяйстве» по итогам участия в конкурсе Молодежного союза финансистов и экономистов России, проводимом Министерством образования и науки РФ. В этом же году награждена дипломом 10 Московского международного салона инноваций и инвестиций за разработку программного продукта «Управленческий учет затрат и калькулирование себестоимости продукции». В 2012 году данная разработка была отмечена золотыми медалями на Международном фонде Биотехнологий имени академика И.Н. Блохиной и 6-ой Международной биотехнологической выставке РосБиоТех-2012 и дипломом II степени (с вручением серебряной медали) на XVIII Международной выставке-конгрессе «Высокие технологии. Инновации. Инвестиции» (Hi-Tech’2012). В 2012 году награждена почетной грамотой Министерства сельского хозяйства Ставропольского края. В 2013 году стала победителем Тринадцатой Всероссийской Олимпиады развития Народного хозяйства России и Четвертой Всероссийской олимпиады развития сельского хозяйства и АПК России (МСЭФ, г. Москва).</p>',
+        #          'slug': 'artem-marshalkin',
+        #          'position': {
+        #             'title': 'Инструктор',
+        #             'organization_name': 'ЦОПП СК',
+        #             'organization_id': None,
+        #             'organization_override': 'ЦОПП СК',
+        #             'organization_marketing_url': None,
+        #             'organization_uuid': None,
+        #             'organization_logo_image_url': None
+        #          },
+        #          'areas_of_expertise': [],
+        #          'profile_image': {
+        #             'medium': {
+        #                'url': 'https://discovery.copp.knotta.ru/media/media/people/profile_images/c354a47a-eda9-4585-9108-c6c715a544d3-8e585cdddb08.medium.jpeg',
+        #                'width': 110,
+        #                'height': 110
+        #             }
+        #          },
+        #          'works': [],
+        #          'urls': {
+        #             'facebook': None,
+        #             'twitter': None,
+        #             'blog': None
+        #          },
+        #          'urls_detailed': [],
+        #          'email': None,
+        #          'profile_image_url': '/media/media/people/profile_images/c354a47a-eda9-4585-9108-c6c715a544d3-8e585cdddb08.jpeg',
+        #          'major_works': '',
+        #          'published': True
+        #       }
+        #    ],
+        #    'min_effort': 1,
+        #    'max_effort': 5,
+        #    'weeks_to_complete': 5,
+        #    'modified': '2021-12-20T20:04:31.516078Z',
+        #    'level_type': 'Начальный',
+        #    'availability': 'Текущий',
+        #    'mobile_available': False,
+        #    'hidden': False,
+        #    'reporting_type': 'mooc',
+        #    'eligible_for_financial_aid': True,
+        #    'first_enrollable_paid_seat_price': 100,
+        #    'has_ofac_restrictions': False,
+        #    'ofac_comment': 'test',
+        #    'enrollment_count': 0,
+        #    'recent_enrollment_count': 0,
+        #    'expected_program_type': 'povyshenie-kvallifikatsii',
+        #    'expected_program_name': '',
+        #    'course_uuid': 'e1e7453a-0f45-43de-a2ae-a3ecddff94a5',
+        #    'estimated_hours': 15.0,
+        #    'content_language_search_facet_name': 'English',
+        #    'course_key': 'copp+commerce-1',
+        #    'owners': [
+        #       {
+        #          'uuid': 'f5a0bb82-3376-4fc3-b67d-14ff53e666d9',
+        #          'key': 'copp',
+        #          'name': 'ЦОПП СК',
+        #          'auto_generate_course_run_keys': True,
+        #          'certificate_logo_image_url': None,
+        #          'description': '',
+        #          'description_es': '',
+        #          'homepage_url': None,
+        #          'tags': [],
+        #          'logo_image_url': '/media/organization/logos/f5a0bb82-3376-4fc3-b67d-14ff53e666d9-31f172a633b9.png',
+        #          'marketing_url': 'school/copp',
+        #          'slug': 'copp',
+        #          'banner_image_url': None
+        #       }
+        #    ],
+        #    'subjects': [
+        #       {
+        #          'name': 'Разработка ПО',
+        #          'subtitle': None,
+        #          'description': '',
+        #          'banner_image_url': None,
+        #          'card_image_url': None,
+        #          'slug': 'razrabotka-po',
+        #          'uuid': '49ae0780-272e-4168-8510-a17cda6746a7'
+        #       }
+        #    ],
+        #    'prerequisites_raw': '<p>Рекомендуемый лимит символов (включая пробелы) - 500. Осталось 499 символов.</p>',
+        #    'syllabus_raw': '<p>Рекомендуемый лимит символов (включая пробелы) - 500. Осталось 499 символов.</p>',
+        #    'additional_information': '<p><span style="color: #454545; font-family: -apple-system, \'system-ui\', \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, \'Noto Sans\', sans-serif, \'Apple Color Emoji\', \'Segoe UI Emoji\', \'Segoe UI Symbol\', \'Noto Color Emoji\'; font-size: 18px; background-color: #ffffff;">Рекомендуемый лимит символов (включая пробелы) - 500. Осталось 499 символов.</span></p>', 'faq': '<p>Рекомендуемый лимит символов (включая пробелы) - 500. Осталось 499 символов.</p>',
+        #    'collaborators': [
+        #       {
+        #          'name': 'Орехов Александр',
+        #          'image': {
+        #             'original': {
+        #                'url': 'https://discovery.copp.knotta.ru/media/media/course/collaborator/image/f4b4d6b9-2bf1-477a-bf0e-21c53b63a9ab-0e37829f36b1.original.jpeg',
+        #                'width': 200,
+        #                'height': 100
+        #             }
+        #          },
+        #          'image_url': '/media/media/course/collaborator/image/f4b4d6b9-2bf1-477a-bf0e-21c53b63a9ab-0e37829f36b1.jpeg',
+        #          'uuid': 'f4b4d6b9-2bf1-477a-bf0e-21c53b63a9ab'
+        #       }
+        #    ],
+        #    'programs': []
+        # }
+
         if len(required_doc_types) > 0:
             is_document_required = True
-
 
         # Register button should be disabled if one of the following is true:
         # - Student is already registered for course
@@ -1025,16 +1207,15 @@ def course_about(request, course_id):
             'invitation_only': invitation_only,
             'active_reg_button': active_reg_button,
             'is_shib_course': is_shib_course,
-            # We do not want to display the internal courseware header, which is used when the course is found in the
-            # context. This value is therefore explicitly set to render the appropriate header.
             'disable_courseware_header': True,
             'pre_requisite_courses': pre_requisite_courses,
             'course_image_urls': overview.image_urls,
             'sidebar_html_enabled': sidebar_html_enabled,
             'allow_anonymous': allow_anonymous,
             'is_document_required': is_document_required,
-            'required_doc_types':required_doc_types,
-            'exist_doc_types':exist_doc_types,
+            'required_doc_types': required_doc_types,
+            'exist_doc_types': exist_doc_types,
+            'custom_course_details': course_run
         }
 
         return render_to_response('courseware/course_about.html', context)

@@ -40,7 +40,7 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
                                 <input class="form-control border-end-0 border rounded-pill search-input px-4"
                                        name="search_query"
                                        type="text"
-                                       placeholder="${_('Search for a course')}"
+                                       placeholder="${_('Найти курс')}"
                                        id="search-input"
                                 />
                                     <span class="input-group-append">
@@ -54,18 +54,18 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
                 % endif
 
                 <li class="nav-item px-4">
-                    <a class="text-white" href="${marketing_link('COURSES')}">${_("Courses")}</a>
+                    <a class="text-white" href="${marketing_link('COURSES')}">${_("Курсы")}</a>
                 </li>
                 <li class="nav-item px-4">
-                    <a class="text-white" href="${marketing_link('ABOUT')}">${_("About Us")}</a>
+                    <a class="text-white" href="${marketing_link('ABOUT')}">${_("О нас")}</a>
                 </li>
 
                     <li class="nav-item px-4">
-                        <a class="text-white" href="${marketing_link('CONTACT')}">${_("Contacts")}</a>
+                        <a class="text-white" href="${marketing_link('CONTACT')}">${_("Контакты")}</a>
                     </li>
 
                 <li class="nav-item px-4">
-                    <a class="text-white" href="${marketing_link('FAQ')}">${_("Help")}</a>
+                    <a class="text-white" href="${marketing_link('FAQ')}">${_("Помощь")}</a>
                 </li>
 
             </ul>
@@ -74,11 +74,11 @@ from openedx.core.djangoapps.user_authn.toggles import should_redirect_to_authn_
             % if allows_login:
                 % if should_redirect_to_authn_mfe:
                     <li class="nav nav-item">
-                        <a class="btn btn-brand-white" href="${settings.AUTHN_MICROFRONTEND_URL}/login${login_query()}">${_("Sign in")}</a>
+                        <a class="btn btn-brand-white" href="${settings.AUTHN_MICROFRONTEND_URL}/login${login_query()}">${_("Войти")}</a>
                     </li>
                 % else:
                     <li class="nav nav-item">
-                        <a class="btn btn-brand-white" href="/login${login_query()}">${_("Sign in")}</a>
+                        <a class="btn btn-brand-white" href="/login${login_query()}">${_("Войти")}</a>
                     </li>
                 % endif
             % endif
