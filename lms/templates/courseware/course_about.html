@@ -238,7 +238,7 @@ from six import string_types
                         else:
                             href_class = "register"
                     %>
-                    <a type="button" class="btn btn-brand-white" href="${reg_href}" class="${href_class}">${_("Записаться")}</a>
+                    <a type="button" class="btn btn-brand-white register" href="${reg_href}" class="${href_class}">${_("Записаться")}</a>
                     <div id="register_error"></div>
                 %endif
             </div>
@@ -389,8 +389,38 @@ from six import string_types
                                 Цена: Бесплатно
                             </li>
                         %endif
-                        %if not is_document_required:
-                            <a type="button" class="btn btn-brand-dark my-3 mx-4" href="https://account.copp.knotta.ru/#documents" target="_blank" class="register">${_("Записаться")}</a>
+
+                        %if user.is_authenticated and registered:
+                            %if show_courseware_link:
+                                <a type="button" class="btn btn-brand-dark my-3 mx-4" href="${course_target}">
+                            %endif
+                                    <span class="register disabled">${_("Вы записаны на этот курс")}</span>
+                                    %if show_courseware_link:
+                                    <strong>${_("Посмотреть курс")}</strong>
+                                </a>
+                                    %endif
+                        % elif is_course_full:
+                            <span class="register disabled">${_("Курс пройден")}</span>
+                        % elif (is_courses_default_invite_only_enabled() or invitation_only) and not can_enroll:
+                            <span class="register disabled">${_("Только по приглашению")}</span>
+                            <span class="register disabled">${_("Запись закрыта")}</span>
+                        %elif allow_anonymous:
+                            %if show_courseware_link:
+                                <a type="button" class="btn btn-brand-dark my-3 mx-4" href="${course_target}"><strong>${_("Посмотреть курс")}</strong></a>
+                            %endif
+                        %elif not is_document_required:
+                            <%
+                                if ecommerce_checkout:
+                                    reg_href = ecommerce_checkout_link
+                                else:
+                                    reg_href="#"
+                                if single_paid_mode:
+                                    href_class = "add-to-cart"
+                                else:
+                                    href_class = "register"
+                            %>
+                            <a type="button" class="btn btn-brand-dark register my-3 mx-4" href="${reg_href}" class="${href_class}">${_("Записаться")}</a>
+                            <div id="register_error"></div>
                         %endif
                     </ul>
                 </section>
@@ -412,7 +442,7 @@ from six import string_types
                                     </li>
                                 % endfor
                             </ul>
-                            <a type="button" class="btn btn-brand-dark my-3 mx-4" href="https://account.copp.knotta.ru" class="register">${_("Подать документы")}</a>
+                            <a type="button" class="btn btn-brand-dark my-3 mx-4" href="${account_url}/#documents" class="register">${_("Подать документы")}</a>
                         </div>
                     </section>
                 %endif
