@@ -1321,7 +1321,7 @@ WIKI_ENABLED = True
 
 COURSE_MODE_DEFAULTS = {
     'bulk_sku': None,
-    'currency': 'usd',
+    'currency': 'rub',
     'description': None,
     'expiration_datetime': None,
     'min_price': 0,
@@ -1913,7 +1913,7 @@ EMBARGO_SITE_REDIRECT_URL = None
 PAYMENT_SUPPORT_EMAIL = 'billing@example.com'
 
 # Setting for PAID_COURSE_REGISTRATION, DOES NOT AFFECT VERIFIED STUDENTS
-PAID_COURSE_REGISTRATION_CURRENCY = ['usd', '$']
+PAID_COURSE_REGISTRATION_CURRENCY = ['rub', '₽']
 
 ################################# EdxNotes config  #########################
 
