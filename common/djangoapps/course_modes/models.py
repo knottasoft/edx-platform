@@ -165,10 +165,10 @@ class CourseMode(models.Model):
     AUDIT_MODES = [AUDIT, HONOR]
 
     # Modes that allow a student to pursue a verified certificate
-    VERIFIED_MODES = [VERIFIED, PROFESSIONAL, MASTERS, EXECUTIVE_EDUCATION]
+    VERIFIED_MODES = [VERIFIED, MASTERS, EXECUTIVE_EDUCATION]
 
     # Modes that allow a student to pursue a non-verified certificate
-    NON_VERIFIED_MODES = [HONOR, AUDIT, NO_ID_PROFESSIONAL_MODE]
+    NON_VERIFIED_MODES = [HONOR, AUDIT, NO_ID_PROFESSIONAL_MODE, PROFESSIONAL]
 
     # Modes that allow a student to earn credit with a university partner
     CREDIT_MODES = [CREDIT_MODE]
