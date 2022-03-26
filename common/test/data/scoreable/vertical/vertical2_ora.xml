@@ -39,11 +39,11 @@
       <criterion feedback="optional">
         <name>Ideas</name>
         <label>Ideas</label>
-        <prompt>Determine if there is a unifying theme or main idea.</prompt>
+        <prompt>Определите, есть ли объединяющая тема или главная идея</prompt>
         <option points="0">
           <name>Poor</name>
-          <label>Poor</label>
-          <explanation>Difficult for the reader to discern the main idea.  Too brief or too repetitive to establish or maintain a focus.</explanation>
+          <label>Плохо</label>
+          <explanation>Трудно выделить главную идею.  Слишком краткое или слишком повторяющееся изложение, чтобы установить или удержать внимание.</explanation>
         </option>
         <option points="3">
           <name>Fair</name>

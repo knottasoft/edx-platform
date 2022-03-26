@@ -38,9 +38,19 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
     .nav-item {
         color: #FFFFFF;
     }
-    a:not(.btn), a:visited:not(.btn) {
+
+    /*a:not(.btn), a:visited:not(.btn) {*/
+    /*    color: #FFFFFF;*/
+    /*}*/
+
+    .navbar-brand:not(.btn), .navbar-brand:visited:not(.btn) {
         color: #FFFFFF;
     }
+
+    .tab-nav-link:not(.btn), .tab-nav-link:visited:not(.btn) {
+        color: #FFFFFF;
+    }
+
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-brand" aria-label="${_('Supplemental Links')}">
