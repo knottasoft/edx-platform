@@ -1,14 +1,13 @@
 ---
 metadata:
-    display_name: Raw HTML
+    display_name: Необработанный HTML
     editor: raw
 data: |
-      <p>This template is similar to the Text template. The only difference is 
-      that this template opens in the Raw HTML editor rather than in the Visual
-      editor.</p>
+      <p>Этот шаблон похож на шаблон "Текст". Единственное отличие заключается в том. 
+      что этот шаблон открывается в редакторе Raw HTML, а не в визуальном редакторе.</p>
 
-      <p>The Raw HTML editor saves your HTML exactly as you enter it.
-      You can switch to the Visual editor by clicking the Settings tab and 
-      changing the Editor setting to Visual. Note, however, that some of your 
-      HTML may be modified when you save the component if you switch to the 
-      Visual editor.</p>
+      <p>Редактор Raw HTML сохраняет ваш HTML именно в том виде, в котором вы его вводите.
+      Вы можете переключиться на визуальный редактор, перейдя на вкладку Настройки и 
+      изменив параметр Редактор на Визуальный. Обратите внимание, однако, что некоторые из ваших 
+      HTML могут быть изменены при сохранении компонента, если вы переключитесь на 
+      визуальный редактор.</p>
