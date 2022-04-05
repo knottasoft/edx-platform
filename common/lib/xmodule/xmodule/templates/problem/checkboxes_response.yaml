@@ -1,28 +1,27 @@
 ---
 metadata:
-    display_name: Checkboxes
+    display_name: Флажки
     markdown: |
-        You can use this template as a guide to the simple editor markdown and OLX markup to use for checkboxes problems. Edit this component to replace this template with your own assessment.
+        Вы можете использовать этот шаблон в качестве руководства по простому редактору markdown и разметке OLX, чтобы использовать для проблем с флажками. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.
 
-        >>Add the question text, or prompt, here. This text is required.||You can add an optional tip or note related to the prompt like this. <<
+        >>Добавьте сюда текст вопроса, или подсказку. Этот текст обязателен.||Вот так, вы можете добавить необязательный совет или примечание, связанное с подсказкой. <<
 
-        [x] a correct answer
-        [ ] an incorrect answer
-        [ ] an incorrect answer
-        [x] a correct answer
+        [x] правильный ответ
+        [ ] неправильный ответ
+        [ ] неправильный ответ
+        [x] правильный ответ
 
 data:   |
         <problem>
             <choiceresponse>
-                <p>You can use this template as a guide to the simple editor markdown and OLX markup to use for checkboxes problems. Edit this component to replace this template with your own assessment.</p>
-                <label>Add the question text, or prompt, here. This text is required.</label>
-                <description>You can add an optional tip or note related to the prompt like this.</description>
+                <p>Вы можете использовать этот шаблон в качестве руководства по простому редактору разметки и разметке OLX, чтобы использовать для проблем с флажками. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.</p>
+                <label>Добавьте сюда текст вопроса или подсказку. Этот текст является обязательным.</label>
+                <description>Вы можете добавить необязательный совет или примечание, связанное с подсказкой, следующим образом.</description>
                 <checkboxgroup>
-                    <choice correct="true">a correct answer</choice>
-                    <choice correct="false">an incorrect answer</choice>
-                    <choice correct="false">an incorrect answer</choice>
-                    <choice correct="true">a correct answer</choice>
+                    <choice correct="true">правильный ответ</choice>
+                    <choice correct="false">неправильный ответ</choice>
+                    <choice correct="false">неправильный ответ</choice>
+                    <choice correct="true">правильный ответ</choice>
                 </checkboxgroup>
             </choiceresponse>
         </problem>
-
