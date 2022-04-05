@@ -1,52 +1,52 @@
 ---
 metadata:
-    display_name: Checkboxes with Hints and Feedback
+    display_name: Флажки с подсказками и обратной связью
     markdown: |
 
-      You can use this template as a guide to the simple editor markdown and OLX markup to use for checkboxes with hints and feedback problems. Edit this component to replace this template with your own assessment.
+      Вы можете использовать этот шаблон в качестве руководства по простой разметке редактора и разметке OLX, которую следует использовать для флажков с подсказками и проблем с обратной связью. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.
 
-      >>Add the question text, or prompt, here. This text is required.||You can add an optional tip or note related to the prompt like this.<<
+      >>Добавьте сюда текст вопроса, или подсказку. Этот текст обязателен.||Вы можете добавить необязательный совет или примечание, связанное с подсказкой, как здесь.<<
 
-      [x] a correct answer {{ selected: You can specify optional feedback that appears after the learner selects and submits this answer. }, { unselected: You can specify optional feedback that appears after the learner clears and submits this answer.}}
-      [ ] an incorrect answer
-      [ ] an incorrect answer {{ selected: You can specify optional feedback for none, all, or a subset of the answers. }, { unselected: You can specify optional feedback for selected answers, cleared answers, or both.}}
-      [x] a correct answer
+      [x] правильный ответ {{ отмечено: Вы можете указать необязательную обратную связь, которая появится после того, как учащийся выберет и отправит этот ответ. }, { {не отмечено: Вы можете указать необязательную обратную связь, которая появится после того, как учащийся очистит и отправит этот ответ.}}
+      [ ] неправильный ответ
+      [ ] неправильный ответ {{ отмечено: Вы можете указать необязательную обратную связь ни для одного, всех или некоторого подмножества ответов. }, { { не отмечено: Вы можете указать необязательную обратную связь для выбранных ответов, очищенных ответов или обоих ответов.}}
+      [x] правильный ответ
 
 
-      {{ ((A B D)) You can specify optional feedback for a combination of answers which appears after the specified set of answers is submitted. }}
-      {{ ((A B C D)) You can specify optional feedback for one, several, or all answer combinations. }}
+      {{ ((A B D)) Вы можете указать необязательную обратную связь для комбинации ответов, которая появляется после отправки указанного набора ответов. }}
+      {{ ((A B C D)) Вы можете указать необязательную обратную связь для одной, нескольких или всех комбинаций ответов. }}
 
-      ||You can add an optional hint like this. Problems that have a hint include a hint button, and this text appears the first time learners select the button.||
-      ||If you add more than one hint, a different hint appears each time learners select the hint button.||
+      ||Вы можете добавить необязательную подсказку следующим образом. Задачи с подсказкой включают кнопку подсказки, и этот текст появляется при первом выборе кнопки.||
+      ||Если вы добавите более одной подсказки, каждый раз, когда учащиеся выбирают кнопку подсказки, появляется другая подсказка.||
 
 
 hinted: true
 data:   |
         <problem>
             <choiceresponse>
-                <p>You can use this template as a guide to the simple editor markdown and OLX markup to use for checkboxes with hints and feedback problems. Edit this component to replace this template with your own assessment.</p>
-                <label>Add the question text, or prompt, here. This text is required.</label>
-                <description>You can add an optional tip or note related to the prompt like this.</description>
+                <p>Вы можете использовать этот шаблон в качестве руководства по простой разметке редактора и разметке OLX, которую следует использовать для флажков с подсказками и проблем с обратной связью. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.</p>
+                <label>Добавьте сюда текст вопроса или подсказку. Этот текст обязателен.</label>
+                <description>Вы можете добавить необязательный совет или примечание, связанное с подсказкой, например, так.</description>
                 <checkboxgroup>
-                    <choice correct="true">a correct answer
-                        <choicehint selected="true">You can specify optional feedback that appears after the learner selects and submits this answer.</choicehint>
-                        <choicehint selected="false">You can specify optional feedback that appears after the learner clears and submits this answer.</choicehint>
+                    <choice correct="true">правильный ответ
+                        <choicehint selected="true">Вы можете указать необязательный отзыв, который появится после того, как учащийся выберет и отправит этот ответ.</choicehint>
+                        <choicehint selected="false">Вы можете указать необязательную обратную связь, которая появится после того, как учащийся очистит и отправит этот ответ.</choicehint>
                     </choice>
-                    <choice correct="false">an incorrect answer
+                    <choice correct="false">неправильный ответ
                     </choice>
-                    <choice correct="false">an incorrect answer
-                        <choicehint selected="true">You can specify optional feedback for none, all, or a subset of the answers.</choicehint>
-                        <choicehint selected="false">You can specify optional feedback for selected answers, cleared answers, or both.</choicehint>
+                    <choice correct="false">неправильный ответ
+                        <choicehint selected="true">Вы можете указать необязательную обратную связь ни для одного, всех или подмножества ответов.</choicehint>
+                        <choicehint selected="false">Можно указать необязательную обратную связь для выбранных ответов, очищенных ответов или обоих вариантов.</choicehint>
                     </choice>
-                    <choice correct="true">a correct answer
+                    <choice correct="true">правильный ответ
                     </choice>
-                    <compoundhint value="A B D">You can specify optional feedback for a combination of answers which appears after the specified set of answers is submitted.</compoundhint>
-                    <compoundhint value="A B C D">You can specify optional feedback for one, several, or all answer combinations.</compoundhint>
+                    <compoundhint value="A B D">Вы можете указать необязательную обратную связь для комбинации ответов, которая появляется после отправки указанного набора ответов.</compoundhint>
+                    <compoundhint value="A B C D">Вы можете указать необязательные отзывы для одной, нескольких или всех комбинаций ответов.</compoundhint>
                 </checkboxgroup>
             </choiceresponse>
 
             <demandhint>
-                <hint>You can add an optional hint like this. Problems that have a hint include a hint button, and this text appears the first time learners select the button.</hint>
-                <hint>If you add more than one hint, a different hint appears each time learners select the hint button.</hint>
+                <hint>Вы можете добавить необязательную подсказку следующим образом. Задачи, в которых есть подсказка, включают кнопку подсказки, и этот текст появляется при первом выборе кнопки учащимися.</hint>
+                <hint>Если вы добавите несколько подсказок, при каждом выборе учащимися кнопки подсказки будет появляться другая подсказка.</hint>
             </demandhint>
         </problem>
