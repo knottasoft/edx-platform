@@ -1,24 +1,24 @@
 ---
 metadata:
-    display_name: Dropdown
+    display_name: Выпадающий список
     markdown: |
-         You can use this template as a guide to the simple editor markdown and OLX markup to use for dropdown problems. Edit this component to replace this template with your own assessment.
-         >>Add the question text, or prompt, here. This text is required.||You can add an optional tip or note related to the prompt like this. <<
+         Вы можете использовать этот шаблон в качестве руководства по простой разметке редактора и разметке OLX для использования вариантов ответа в выпадающем списке. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.
+         >>Добавьте сюда текст вопроса, или подсказку. Этот текст обязателен.||Вы можете добавить необязательный совет или примечание, связанное с подсказкой, как показано ниже. <<
          [[
-         an incorrect answer
-         (the correct answer)
-         an incorrect answer
+         не верный вариант ответа
+         (верный вариант ответа)
+         не верный вариант ответа
          ]]
 data:   |
         <problem>
             <optionresponse>
-                <p>You can use this template as a guide to the simple editor markdown and OLX markup to use for dropdown problems. Edit this component to replace this template with your own assessment.</p>
-                <label>Add the question text, or prompt, here. This text is required.</label>
-                <description>You can add an optional tip or note related to the prompt like this. </description>
+                <p>Вы можете использовать этот шаблон в качестве руководства по простой разметке редактора и разметке OLX для использования вариантов ответа в выпадающем списке. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.</p>
+                <label>Добавьте сюда текст вопроса, или подсказку. Этот текст обязателен.</label>
+                <description>Вы можете добавить необязательный совет или примечание, связанное с подсказкой, как показано ниже. </description>
                 <optioninput>
-                    <option correct="False">an incorrect answer</option>
-                    <option correct="True">the correct answer</option>
-                    <option correct="False">an incorrect answer</option>
+                    <option correct="False">не верный вариант ответа</option>
+                    <option correct="True">верный вариант ответа</option>
+                    <option correct="False">не верный вариант ответа</option>
                 </optioninput>
             </optionresponse>
         </problem>
