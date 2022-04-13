@@ -1,33 +1,34 @@
 ---
 metadata:
-    display_name: Dropdown with Hints and Feedback
+    display_name: Выпадающий список с подсказками и обратной связью
     markdown: |
-        You can use this template as a guide to the simple editor markdown and OLX markup to use for dropdown with hints and feedback problems. Edit this component to replace this template with your own assessment.
-        >>Add the question text, or prompt, here. This text is required.||You can add an optional tip or note related to the prompt like this. <<
+        Вы можете использовать этот шаблон в качестве руководства по простой разметке редактора и разметке OLX для использования выпадающего списка с подсказками и  обратной связью. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.
+        >>Добавьте сюда текст вопроса, или подсказку. Этот текст обязателен.||Вы можете добавить необязательный совет или примечание, связанное с подсказкой, следующим образом. <<
+
         [[
-        an incorrect answer {{You can specify optional feedback like this, which appears after this answer is submitted.}}
-        (the correct answer)
-        an incorrect answer {{You can specify optional feedback for none, a subset, or all of the answers.}}
+        не верный вариант ответа {{Вы можете указать необязательные отзывы, такие как этот, которые появляются после отправки этого ответа.}}
+        (верный вариант ответа)
+        не верный вариант ответ {{Вы можете указать необязательную обратную связь для одного, нескольких или всех ответов}}.
         ]]
 
-        ||You can add an optional hint like this. Problems that have a hint include a hint button, and this text appears the first time learners select the button.||
-        ||If you add more than one hint, a different hint appears each time learners select the hint button.||
+        ||Вы можете добавить необязательную подсказку следующим образом. Задачи, в которых есть подсказка, включают кнопку подсказки, и этот текст появляется при нажатии кнопки учащимися.||
+        ||Если вы добавите несколько подсказок, при каждом нажатии учащимися кнопки подсказки будет появляться другая подсказка.||
 
 hinted: true
 data:   |
         <problem>
             <optionresponse>
-                <p>You can use this template as a guide to the simple editor markdown and OLX markup to use for dropdown with hints and feedback problems. Edit this component to replace this template with your own assessment.</p>
-                <label>Add the question text, or prompt, here. This text is required.</label>
-                <description>You can add an optional tip or note related to the prompt like this. </description>
+                <p>Вы можете использовать этот шаблон в качестве руководства по простой разметке редактора и разметке OLX для использования выпадающего списка с подсказками и  обратной связью. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.</p>
+                <label>Добавьте сюда текст вопроса, или подсказку. Этот текст обязателен.</label>
+                <description>Вы можете добавить необязательный совет или примечание, связанное с подсказкой, следующим образом. </description>
                 <optioninput>
-                    <option correct="False">an incorrect answer <optionhint>You can specify optional feedback like this, which appears after this answer is submitted.</optionhint></option>
-                    <option correct="True">the correct answer</option>
-                    <option correct="False">an incorrect answer <optionhint>You can specify optional feedback for none, a subset, or all of the answers.</optionhint></option>
+                    <option correct="False">не верный вариант ответа<optionhint>Вы можете указать необязательные отзывы, такие как этот, которые появляются после отправки этого ответа.</optionhint></option>
+                    <option correct="True">верный вариант ответа</option>
+                    <option correct="False">не верный вариант ответа<optionhint>Вы можете указать необязательную обратную связь для одного, нескольких или всех ответов.</optionhint></option>
                 </optioninput>
             </optionresponse>
             <demandhint>
-              <hint>You can add an optional hint like this. Problems that have a hint include a hint button, and this text appears the first time learners select the button.</hint>
-              <hint>If you add more than one hint, a different hint appears each time learners select the hint button.</hint>
+              <hint>Вы можете добавить необязательную подсказку следующим образом. Задачи, в которых есть подсказка, включают кнопку подсказки, и этот текст появляется при нажатии кнопки учащимися.</hint>
+              <hint>Если вы добавите несколько подсказок, при каждом нажатии учащимися кнопки подсказки будет появляться другая подсказка.</hint>
             </demandhint>
         </problem>
