@@ -1,27 +1,27 @@
 ---
 metadata:
-    display_name: Multiple Choice
+    display_name: Выбор варианита
     markdown: |
 
-        You can use this template as a guide to the simple editor markdown and OLX markup to use for multiple choice problems. Edit this component to replace this template with your own assessment.
+        Вы можете использовать этот шаблон в качестве руководства по использованию простой разметки редактора и разметки OLX для задач с выбором правильного варианта ответа. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.
 
-        >>Add the question text, or prompt, here. This text is required.||You can add an optional tip or note related to the prompt like this. <<
+        >>Добавьте сюда текст вопроса, или подсказку. Этот текст обязателен.||Вы можете добавить необязательный совет или примечание, связанное с подсказкой, следующим образом.<<
 
-        ( ) an incorrect answer
-        (x) the correct answer
-        ( ) an incorrect answer
+        ( ) не верный вариант ответа
+        (x) верный вариант ответа
+        ( ) не верный вариант ответа
 
 
 data:   |
         <problem>
             <multiplechoiceresponse>
-                <p>You can use this template as a guide to the simple editor markdown and OLX markup to use for multiple choice problems. Edit this component to replace this template with your own assessment.</p>
-                <label>Add the question text, or prompt, here. This text is required.</label>
-                <description>You can add an optional tip or note related to the prompt like this.</description>
+                <p>Вы можете использовать этот шаблон в качестве руководства по использованию простой разметки редактора и разметки OLX для задач с выбором правильного варианта ответа. Отредактируйте этот компонент, чтобы заменить этот шаблон своей собственной оценкой.</p>
+                <label>Добавьте сюда текст вопроса, или подсказку. Этот текст обязателен.</label>
+                <description>Вы можете добавить необязательный совет или примечание, связанное с подсказкой, следующим образом.</description>
                 <choicegroup>
-                    <choice correct="false">an incorrect answer</choice>
-                    <choice correct="true">the correct answer</choice>
-                    <choice correct="false">an incorrect answer</choice>
+                    <choice correct="false">не верный вариант ответа</choice>
+                    <choice correct="true">верный вариант ответа</choice>
+                    <choice correct="false">не верный вариант ответа</choice>
                 </choicegroup>
             </multiplechoiceresponse>
         </problem>
