@@ -1,6 +1,6 @@
 ---
 metadata:
-    display_name: Problem with Adaptive Hint in Latex
+    display_name: Задача с адаптивной подсказкой в Latex
     source_code: |
         \subsection{Problem With Adaptive Hint}
 

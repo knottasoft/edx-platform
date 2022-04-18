@@ -1,6 +1,6 @@
 ---
 metadata:
-    display_name: E-text Written in LaTeX
+    display_name: Электронный текст, написанный в LaTeX
     source_code: |
         \subsection{Example of E-text in LaTeX}
         You can write complex equations in LaTeX.

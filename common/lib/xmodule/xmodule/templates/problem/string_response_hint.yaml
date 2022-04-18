@@ -1,6 +1,6 @@
 ---
 metadata:
-    display_name: Text Input with Hints and Feedback
+    display_name: Короткий текстовый ответ с подсказкой и отзывом
     markdown: |
 
         You can use this template as a guide to the simple editor markdown and OLX markup to use for text input with hints and feedback problems. Edit this component to replace this template with your own assessment.
